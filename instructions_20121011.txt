@@ -32,12 +32,17 @@ The parameters of the m4l shape are read directly from the input cards
 used by the combination package in HiggsAnalysis/HZZ4L_CombinationPy/CreateDatacards/SM_inputs_8TeV/
 (or 7TeV, you can set where to go and read the input cards). 
 
-WARNING (2012/10/11) : the current implementation uses still the old CB shape 
+WARNING #1 (2012/10/12) : the current implementation uses still the old CB shape 
 for the signal. In the meantime Mario changed it to a DoubleCB. The mechanism
 is the same but the code needs to be changed if you want to be in sync with the
 HEAD of CreateDatacards. Otherwise, if you want to stick to the old CB shape,
 the current code works but you must check-out an old tag of the HZZ4l combination
 package.
+
+WARNING #2 (2012/10/12): I had problems in interfacing the code to Matt's
+class that calculates the theoretical width of the Higgs. This is used for
+defining the m4l window in use. Since in any case we are not interested
+to anything else than mH=125 or mH=126, I hard-coded these values. To be fixed.
 
 -) for an example of how to use the SuperMELA class, refer to the macros
 test/testSuperMELAKD.C
