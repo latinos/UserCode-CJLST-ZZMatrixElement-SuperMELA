@@ -96,10 +96,13 @@ cp ZZMatrixElement/SuperMELA/scripts/datacardClassSMD.py  HiggsAnalysis/HZZ4L_Co
 cp ZZMatrixElement/SuperMELA/scripts/systematicsClass.py  HiggsAnalysis/HZZ4L_CombinationPy/CreateDatacards/
 cd HiggsAnalysis/HZZ4L_CombinationPy/CreateDatacards/
 
-
 change in makeDCsandWSs.py: datacardClass.py ---> datacardClassSMD.py
 and run it (example for 8TeV):
 python makeDCsandWSs.py -i SM_inputs_8TeV -a HypTest_smd_8TeV -b -t templates2D_smd_8TeV/ > output_HypTest_smd_8TeV.txt
+
+This special version of datacardClass will produce cards to be used with Combine !
+Also, there is no point in creating cards and ws for a mass different
+to what was used in the calculation of superMELA for the templates.
 
 WARNING (2012/10/11): as for the other caveat above, the card making 
 code is changed in parallel to my studies on superMELA. As a consequence, 
