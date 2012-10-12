@@ -1,0 +1,117 @@
+
+Required packages and installation:
+
+cvs co -A HiggsAnalysis/CombinedLimit
+cvs co -A -d ZZMatrixElement/MELA  UserCode/CJLST/ZZMatrixElement/MELA/
+cvs co -A -d ZZMatrixElement/SuperMELA  UserCode/CJLST/ZZMatrixElement/SuperMELA/
+cvs co -A -d HiggsAnalysis/HZZ4L_CombinationPy/ UserCode/HZZ4L_Combination/CombinationPy
+
+scram b -j7 #it will take >20 minutes
+
+
+
+****************************
+1) : calculate superMELA
+
+
+-)the idea is to take in input the stat trees of CJLST (ask Mario, Cri and Nic)
+and produce copies of the trees with additional branches including superMELA.
+the susperMELA discriminant needs in input the Psig and Pbkg of MELA plus
+the m4l analytical shapes of signal and background. 
+
+Psig(MELA) and Pbkg(MELA) can be passed as inputs in case they were 
+pre-calculated. For instance they can be read from the same stat trees in input. 
+This is the default behaviour and it is fast.
+Alternatively, they can be recalculated on the fly (slow because of analytical bkg shape!). 
+Notice that in this way one can create a superMELA discriminant not just using MELA
+plus m4l but using nloMELA plus m4l. You must change the source code of the 
+class and switch to true the withPt and withY flags of the MELA computation
+(and recompile, of course). 
+
+The parameters of the m4l shape are read directly from the input cards
+used by the combination package in HiggsAnalysis/HZZ4L_CombinationPy/CreateDatacards/SM_inputs_8TeV/
+(or 7TeV, you can set where to go and read the input cards). 
+
+WARNING (2012/10/11) : the current implementation uses still the old CB shape 
+for the signal. In the meantime Mario changed it to a DoubleCB. The mechanism
+is the same but the code needs to be changed if you want to be in sync with the
+HEAD of CreateDatacards. Otherwise, if you want to stick to the old CB shape,
+the current code works but you must check-out an old tag of the HZZ4l combination
+package.
+
+-) for an example of how to use the SuperMELA class, refer to the macros
+test/testSuperMELAKD.C
+test/prodSuperMELAKD.C
+
+prodSuperMELAKD.C is probably more realistic and this is what was used 
+for the tests done so far for the signal separation. 
+testSuperMELAKD.C is easier to follow, though. I would start by giving 
+a look at this and then moving to prodSuperMELAKD.C
+
+-) in prodSuperMELAKD you set the input directory, the output directory,
+the name of the samples to loop on and the sqrtS. These params are all
+defined at the top of the macro. Then, in a root session:
+
+[0] .x loadMELA.C
+[1] .L prodSuperMELAKD.C++
+[2] prodSuperMELAKD()
+
+and you let it go.
+
+****************************
+2) : generate 2D templates
+
+once you have flat trees containing superMELA, you can generate 2D templates
+(TH2F) with superMELA and psMELA (or graviMELA, it should be in the stat trees
+of the batch of October 2012). 
+
+-) Use the macro HiggsAnalysis/HZZ4L_CombinationPy/AnalysisInputs/generateTemplatesSMD.C
+Edit the "Really important parameters" section at the top of the file. There are
+more details in the comments next to the variables.
+Also, you should change in the file AnalysisInputs/ConfigSMD.h the dirs with the
+new trees with superMELA. Then it's just a matter of doing
+root -q -b loadMELA.C generateTemplatesSMD.C+
+
+You may also need a dummy observed dataset with superMELA in it.
+There is the script generateDummyObsDataSMD.C that does it. This macro is
+really crappy, I apologize but I didn't have time to clean it up. In a ROOT
+session you compile it and then execute it passing as argument the 
+desired integrated lumi. The code reads in the MC files and samples randomly
+events out of them, according to the desired lumi.
+
+
+
+****************************
+3) : create cards and ws
+
+Great, you have 2D templates with superMELA !!!
+Now you have just to create cards and workspaces. For the time being 
+I have only some temporary code that duplicates what is on CVS.
+The short-medium term plan is to merge the superMELA stuff into it.
+For the time being, you should copy in HiggsAnalysis/HZZ4L_CombinationPy/CreateDatacards/
+some files from ZZMatrixElement/SuperMELA/
+
+cd $CMSSW_BASE/src/
+cp ZZMatrixElement/SuperMELA/scripts/datacardClassSMD.py  HiggsAnalysis/HZZ4L_CombinationPy/CreateDatacards/
+cp ZZMatrixElement/SuperMELA/scripts/systematicsClass.py  HiggsAnalysis/HZZ4L_CombinationPy/CreateDatacards/
+cd HiggsAnalysis/HZZ4L_CombinationPy/CreateDatacards/
+
+
+change in makeDCsandWSs.py: datacardClass.py ---> datacardClassSMD.py
+and run it (example for 8TeV):
+python makeDCsandWSs.py -i SM_inputs_8TeV -a HypTest_smd_8TeV -b -t templates2D_smd_8TeV/ > output_HypTest_smd_8TeV.txt
+
+WARNING (2012/10/11): as for the other caveat above, the card making 
+code is changed in parallel to my studies on superMELA. As a consequence, 
+the current version of datacardClassSMD.py is not in sync anymore with what
+is on the HEAD of CreateDatacards/datacardClass.py .
+What it  should be done is to take what is currently in the HEAD of 
+UserCode/HZZ4L_Combination/CombinationPy/CreateDatacards/datacardClass.py
+and port the 2D superMELA features of datacardClassSMD.py into it .  
+If somebody does it, please commit the changes to datacardClassSMD.py
+and edit this warning message.
+
+
+******************************
+4) run the signal separation
+see UserCode/HZZ4L_Combination/CombinationPy/SignalSeparation/instructions.txt
