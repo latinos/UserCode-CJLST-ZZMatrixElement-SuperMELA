@@ -40,6 +40,12 @@ class SuperMELA {
     init();
   }
 
+  void SetMeanCBsyst(double syst){  mean_CB_err_->setVal(syst); };
+  void SetSigmaCBsyst(double syst){ sigma_CB_err_->setVal(syst); };
+
+  double GetMeanCBsyst(){  return mean_CB_->getVal(); };
+  double GetSigmaCBsyst(){ return sigma_CB_->getVal(); };
+
   void SetMELAProbabilities(double myPsig,double myPbkg){
 
     mela_psig_=myPsig;
@@ -72,6 +78,10 @@ class SuperMELA {
   void SetPathToCards(string dirToCards){ pathToCards_=dirToCards;
     if(verbose_)std::cout<<"New path to cards is "<<pathToCards_.c_str()<<std::endl;}
 
+  void readSigSystFromFile(string &str_mean_CB_err_e,
+			   string &str_mean_CB_err_m,
+			   string &str_sigma_CB_err_e,
+			   string &str_sigma_CB_err_m);
 
  private:
 
@@ -92,6 +102,7 @@ class SuperMELA {
   RooRealVar *m4l_rrv_;//this one is the variable!
   RooRealVar *mH_rrv_;//this one is a fixed param !
   RooRealVar *mean_dummy_,*sigma_dummy_,*alpha_dummy_,*n_dummy_;
+  RooRealVar *mean_CB_err_, *sigma_CB_err_;
   RooFormulaVar *n_CB_, *alpha_CB_,*mean_CB_,*sigma_CB_,*meanTOT_CB_;//,*gamma_BW_;
   RooCBShape *sig_CB_;
   double norm_sig_CB_;
@@ -111,6 +122,7 @@ class SuperMELA {
   TLorentzVector Z1_lept1_,Z1_lept2_,Z2_lept1_,Z2_lept2_;
   int Z1_lept1Id_, Z1_lept2Id_, Z2_lept1Id_, Z2_lept2Id_;
   float m1_,m2_,hs_,h1_,h2_,phi_,phistar1_;
+
 };
 
 

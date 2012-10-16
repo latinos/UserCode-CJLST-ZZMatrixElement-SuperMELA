@@ -4,6 +4,7 @@
 #include "RooArgSet.h"
 #include "RooArgList.h"
 #include "HiggsAnalysis/HZZ4L_CombinationPy/CreateDatacards/include/HiggsCSandWidth.cc"
+
 using namespace RooFit;
 
 SuperMELA::SuperMELA(double mH,string channel,int LHCsqrts){
@@ -156,14 +157,23 @@ void SuperMELA::init(){
 
 
   //set parameters for signal m4l shape and calculate normalization
-  string str_n_CB ;
+  string   str_n_CB ;
   string   str_alpha_CB ;
   string   str_mean_CB ;
   string   str_sigma_CB ;
+  //parameters for signal m4l shape systematics
+  string   str_mean_CB_err_e;
+  string   str_mean_CB_err_m;
+  string   str_sigma_CB_err_e;
+  string   str_sigma_CB_err_m;
   //  double   mean_BW_d = mHVal_;
   if(verbose_)std::cout<<"Reading signal shape formulas"<<std::endl;
   readSigParsFromFile( str_mean_CB,str_sigma_CB ,str_n_CB ,str_alpha_CB);
+  readSigSystFromFile( str_mean_CB_err_e,str_mean_CB_err_m,str_sigma_CB_err_e,str_sigma_CB_err_m);
   if(verbose_){
+    std::cout <<"mean_CB systematics: " << str_mean_CB_err_e << " " << str_mean_CB_err_m << std::endl;
+    std::cout <<"sigma_CB systematics: " << str_sigma_CB_err_e << " " << str_sigma_CB_err_m << std::endl;
+
     std::cout<<"Read from input card the following formulas: "<<std::endl;
     std::cout<<"Mean RooFormula (string): "<<str_mean_CB.c_str()<<std::endl;
     std::cout<<"Sigma RooFormula (string): "<<str_sigma_CB.c_str()<<std::endl;
@@ -178,12 +188,15 @@ void SuperMELA::init(){
 
   RooRealVar corr_mean_sig("CMS_zz4l_mean_sig_corrMH","CMS_zz4l_mean_sig_corrMH",0.0,-10.0,10.0);
   RooRealVar corr_sigma_sig("CMS_zz4l_sigma_sig_corrMH","CMS_zz4l_sigma_sig_corrMH",0.0,-10.0,10.0);
-  mean_CB_=new RooFormulaVar("CMS_zz4l_mean_m_sig",("("+str_mean_CB+")+@0*@1").c_str(),RooArgList(*mH_rrv_,corr_mean_sig));//this is normalized by  mHVal_
+  
+  mean_CB_err_ = new RooRealVar("mean_CB_err_","mean_CB_err_",0,-10,10);
+  mean_CB_=new RooFormulaVar("CMS_zz4l_mean_m_sig",("("+str_mean_CB+")+@0*@1+@0*@2*"+str_mean_CB_err_m).c_str(),RooArgList(*mH_rrv_,corr_mean_sig,*mean_CB_err_));//this is normalized by  mHVal_
   meanTOT_CB_=new RooFormulaVar("CMS_zz4l_mean_sig","(@0+@1)",RooArgList(*mH_rrv_,*mean_CB_));
 
   if(verbose_){    std::cout<<"Signal Mean vals -> Correction: "<<corr_mean_sig.getVal()<<"  Mean: "<<mean_CB_->getVal()<<"  Total: "<<meanTOT_CB_->getVal()<<std::endl;}
 
-  sigma_CB_=new RooFormulaVar("CMS_zz4l_sigma_m_sig",("("+str_sigma_CB+")*(1+@1)").c_str(),RooArgList(*mH_rrv_,corr_sigma_sig ));
+  sigma_CB_err_ = new RooRealVar("sigma_CB_err_","sigma_CB_err_",0,-10,10);
+  sigma_CB_=new RooFormulaVar("CMS_zz4l_sigma_m_sig",("("+str_sigma_CB+")*(1+@1)*(1+@2*"+str_sigma_CB_err_m+")").c_str(),RooArgList(*mH_rrv_,corr_sigma_sig,*sigma_CB_err_ ));
    
   if(verbose_){
     std::cout<<"Signal shape parameter values: "<<std::endl;
@@ -265,6 +278,63 @@ void SuperMELA::init(){
   }
 
 }//end init
+
+void SuperMELA::readSigSystFromFile(string &str_mean_CB_err_e,
+				    string &str_mean_CB_err_m,
+				    string &str_sigma_CB_err_e,
+				    string &str_sigma_CB_err_m){
+
+  bool mean_e_OK=false,sigma_e_OK=false;
+  bool mean_m_OK=false,sigma_m_OK=false;
+
+  //open text file
+  string fCardName=pathToCards_+"inputs_"+strChan_+".txt";
+  if(verbose_)std::cout<<"Parsing input card "<<fCardName.c_str()<<std::endl;
+  ifstream card(fCardName.c_str(),ios::in);
+  string line;
+  while(card.good()){
+    getline(card, line);
+    std::vector<string> fields;
+    split( fields, line, boost::is_any_of( " " ), boost::token_compress_on );
+    if(!(fields[0]=="systematic"&&fields[1]=="param"))continue;
+    //ok, we found somethign interesting
+    if(fields.size()!=4){
+      std::cout<<"Error in SuperMELA::readSigParsFromFile! Incorrect format of line "<<line.c_str()<<std::endl; 
+      break;
+    }
+    if(fields[2]=="CMS_zz4l_mean_m_sig"){
+      str_mean_CB_err_m = fields[3];
+      mean_m_OK=true;
+    }
+    if(fields[2]=="CMS_zz4l_mean_e_sig"){
+      str_mean_CB_err_e = fields[3];
+      mean_e_OK=true;
+    }
+    if(fields[2]=="CMS_zz4l_sigma_m_sig"){
+      str_sigma_CB_err_m = fields[3];
+      sigma_m_OK=true;
+    }
+    if(fields[2]=="CMS_zz4l_sigma_e_sig"){
+      str_sigma_CB_err_e = fields[3];
+      sigma_e_OK=true;
+    }
+    
+    if(mean_e_OK&&sigma_e_OK&&mean_m_OK&&sigma_m_OK) break;
+
+  }//end while loop on lines
+
+  try{
+    if(!(mean_e_OK&&sigma_e_OK&&mean_m_OK&&sigma_m_OK)){
+      throw 20;
+    }
+  }
+  catch(int e){
+    std::cout<<"Exception "<<e <<" in SuperMELA::readSigParsFromFile! Not all signal shape formulas were read "<<mean_e_OK<<"  "<<sigma_e_OK<<"  "<<mean_m_OK<<"  "<<sigma_m_OK<<std::endl;
+  }
+
+  card.close();
+
+}
 
 void  SuperMELA::readSigParsFromFile(string &str_mean_CB,string &str_sigma_CB ,string &str_n_CB ,string &str_alpha_CB){
 
