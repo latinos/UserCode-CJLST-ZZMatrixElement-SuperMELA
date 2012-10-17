@@ -22,20 +22,24 @@ class SuperMELA {
   ~SuperMELA();
   void init();
   void computeKD(double m4l,double PSigMelaIn,double PBkgMelaIn,   //in
-		 double &superMELA,double &MELA,double &Psig,double &Pbkg);//out
+		 double &superMELA,double &Psig,double &Pbkg,double &MELA);//out
 
 //use the following only if you recalc MELA on the fly
   void computeKD(double m4l,bool use4vectors,
-		 double &superMELA,double &MELA,double &Psig,double &Pbkg);//out
+		 double &superMELA,double &Psig,double &Pbkg,double &MELA, double &MELA_psig, double &MELA_pbkg);//out
 
   //use the following if you want to use different values of m4l for PSig and PBkg (for syst unc studies)
   void computeKD(std::pair<double, double> m4lPair,double PSigMelaIn,double PBkgMelaIn,   //in
-		 double &superMELA,double &MELA,double &Psig,double &Pbkg);//out
+		 double &superMELA,double &Psig,double &Pbkg,double &MELA);//out
 
   double GetSigShapeSystematic(string parName);
 
   //setters
-  void  RecalculateMELA(bool recoMELA=true){recalculateMELA_=recoMELA;init();}//default is to take MELA as external input
+  void  RecalculateMELA(bool recoMELA=true){
+    recalculateMELA_=recoMELA;
+    if(melaProd_==0)init();
+  }//default is to take MELA as external input
+
   void SetVerbosity(bool verb=true){verbose_=verb;}
   void SetDecayChannel(string myChan);
   void SetMH(double myMH){

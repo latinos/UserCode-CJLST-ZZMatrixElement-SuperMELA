@@ -16,12 +16,12 @@ void prodSuperMELAKD(){
   //load MELA and SuperMELA libraries
   //.x loadMela.C
 
-  string str_sqrts="7TeV";//"7TeV";//"8TeV"
-  const int nSamples=1;//10 for 8 TeV, 9 for 7TeV
+  string str_sqrts="8TeV";//"7TeV";//"8TeV"
+  const int nSamples=10;//10 for 8 TeV, 9 for 7TeV
 
   string chan[3]={"4mu","4e","2e2mu"};
-  //  string files[10]={"HZZ4lTree_ZZTo4mu","HZZ4lTree_ZZTo4tau","HZZ4lTree_ZZTo4e","HZZ4lTree_ZZTo2e2mu","HZZ4lTree_ZZTo2e2tau","HZZ4lTree_ZZTo2mu2tau","HZZ4lTree_ggZZ2l2l","HZZ4lTree_ggZZ4l","HZZ4lTree_H125","HZZ4lTree_H126"};
-  string files[1]={"HZZ4lTree_jhuPseH125"};
+    string files[10]={"HZZ4lTree_ZZTo4mu","HZZ4lTree_H125","HZZ4lTree_ZZTo4tau","HZZ4lTree_ZZTo4e","HZZ4lTree_ZZTo2e2mu","HZZ4lTree_ZZTo2e2tau","HZZ4lTree_ZZTo2mu2tau","HZZ4lTree_ggZZ2l2l","HZZ4lTree_ggZZ4l","HZZ4lTree_H126"};
+    //string files[1]={"HZZ4lTree_jhuPseH125"};
   //string files[2]={"HZZ4lTree_H125","HZZ4lTree_H126"};
 
   TRandom3 *myR=new TRandom3(4887);
@@ -30,14 +30,21 @@ void prodSuperMELAKD(){
 
       if(ich!=0)continue;
 
-    //string dirName="/afs/cern.ch/user/b/bonato/work/PhysAnalysis/HZZ4L/Trees_31082012/PRODFSR_"+str_sqrts+"/"+chan[ich]+"/";
-    string dirName="/afs/cern.ch/user/b/bonato/work/PhysAnalysis/HZZ4L/Trees_31082012/JHU_"+str_sqrts+"/"+chan[ich]+"/";
+    string dirName="/afs/cern.ch/user/b/bonato/work/PhysAnalysis/HZZ4L/Trees_31082012/PRODFSR_"+str_sqrts+"/"+chan[ich]+"/";
+    //string dirName="/afs/cern.ch/user/b/bonato/work/PhysAnalysis/HZZ4L/Trees_31082012/JHU_"+str_sqrts+"/"+chan[ich]+"/";
 
 
 
-  for(int ifile=0;ifile<nSamples;ifile++){
+    // for(int ifile=0;ifile<nSamples;ifile++){
+ for(int ifile=0;ifile<2;ifile++){
 
     cout<<"\n----------\nProcessing "<<files[ifile].c_str()<<"  "<<chan[ich].c_str()<<endl;
+
+    bool isSignal=(files[ifile].find("H125")!=string::npos);
+
+
+
+
   string fileName=dirName+files[ifile]+".root";
   TFile *fIn=new TFile(fileName.c_str(),"READ");
   TTree *sigTree=(TTree*)fIn->Get("SelectedTree");
@@ -63,17 +70,17 @@ void prodSuperMELAKD(){
   sigTree->SetBranchAddress("ZZLD",&oldD);
   sigTree->SetBranchAddress("MC_weight",&w);
   sigTree->SetBranchAddress("MC_weight_noxsec",&w_noxsec);
-  sigTree->SetBranchAddress("mela_psig",&melapsig);
-  sigTree->SetBranchAddress("mela_pbkg",&melapbkg);
+  // sigTree->SetBranchAddress("mela_psig",&melapsig);
+  // sigTree->SetBranchAddress("mela_pbkg",&melapbkg);
   // sigTree->SetBranchAddress("supermelaLD",&oldSMD);
   // sigTree->SetBranchAddress("supermela_psig",&oldSMDPsig);
   //sigTree->SetBranchAddress("supermela_pbkg",&oldSMDPbkg);
 
-  double smd, mela,psig,pbkg;
+  double smd, mela,psig,pbkg, melapsigOut,melapbkgOut;
   double smdSyst1Up, smdSyst1Down, smdSyst2Up, smdSyst2Down, melaTmp,psigTmp,pbkgTmp;
   float psmela,psigps,pbkgps;
 
- string outFileName=dirName+files[ifile]+"_withSMD.root";
+ string outFileName=dirName+files[ifile]+"_withSMDv2.root";
  TFile *fout=new TFile(outFileName.c_str(),"RECREATE");
  TTree *outTree=new TTree("SelectedTree","SelectedTree");
  outTree->Branch("Z2Mass",&m2,"Z2Mass/F");
@@ -85,6 +92,8 @@ void prodSuperMELAKD(){
  outTree->Branch("helphi",&phi,"helphi/F");
  outTree->Branch("phistarZ1",&phi1,"phistarZ1/F");
  outTree->Branch("ZZLD",&mela,"ZZLD/D");
+ outTree->Branch("ZZLD_PSig",&melapsigOut,"ZZLD_PSig/D");
+ outTree->Branch("ZZLD_PBkg",&melapbkgOut,"ZZLD_PBkg/D");
  outTree->Branch("superLD",&smd,"superLD/D");
  outTree->Branch("pseudoLD",&psmela,"pseudoLD/F");
  outTree->Branch("MC_weight",&w,"MC_weight/F");
@@ -116,15 +125,15 @@ void prodSuperMELAKD(){
  cout<<"testKDSuperMELA (3):  SuperMELA="<<smd<<"  Psig="<<psig<<"   Pbkg="<<pbkg<<"  MELA="<<mela<<endl;
  */
 
- mySMD->RecalculateMELA(false);
+ mySMD->RecalculateMELA(true);
  mySMD->SetVerbosity(false);
 
  double meanCB_err=mySMD->GetSigShapeSystematic("meanCB");
  double sigmaCB_err=mySMD->GetSigShapeSystematic("sigmaCB");
-
+ cout<<"Signal shape syst factors are MeanSystErr="<<meanCB_err<<"  SigmaSystErr="<<sigmaCB_err<<endl;
  cout<<"Looping on test TTree"<<endl;
  int nDiff=0;
- int maxEntries=sigTree->GetEntries();//1000;//sigTree->GetEntries()
+ int maxEntries=1000;//sigTree->GetEntries();//1000;//sigTree->GetEntries()
  TH1F *hSMD=new TH1F("hsmd"," SuperMELA",200,0.0,1.0);
 
  for(int i=0;i<maxEntries;i++){
@@ -132,7 +141,14 @@ void prodSuperMELAKD(){
    if(i%1000==0)cout<<"Entry #"<<i<<endl;
    if(mzz>180.0||mzz<100.0)continue;
 
-   mySMD->computeKD(mzz, melapsig, melapbkg, smd,mela,psig,pbkg);
+
+
+
+   /*****
+    //for regular way, no recalculation of MELA
+    melapsigOut=melapsig;
+    melapbkgOut=melapbkg;
+   mySMD->computeKD(mzz, melapsigOut, melapbkgOut, smd,mela,psig,pbkg);
 
    double mzzTmpSig=0.0, mzzTmpBkg=double(mzz);
    double melaTmp2;
@@ -148,11 +164,49 @@ void prodSuperMELAKD(){
    mzzTmpPair = make_pair(mzzTmpSig,mzzTmpBkg);//Psig and Pbkg
    mySMD->computeKD(mzzTmpPair, melapsig, melapbkg, smdSyst2Up, melaTmp2,psigTmp,pbkgTmp);
    smdSyst2Down=smdSyst2Up;
+   *****/
+
 
    //////for recalculating smd
-   //  mySMD->SetDecayKinematics(m1,m2,hs,h1,h2,phi,phi1);
-   //  mySMD->computeKD(mzz,false,  smd,mela,psig,pbkg);
-   //  mypsLD->computeKD(mzz,m1,m2,hs,h1,h2,phi,phi1,psmela,psigps,pbkgps);   
+   mySMD->RecalculateMELA(true);
+   mySMD->SetDecayKinematics(m1,m2,hs,h1,h2,phi,phi1);
+   mySMD->computeKD(mzz,false, smd,psig,pbkg,mela, melapsigOut, melapbkgOut);
+   mypsLD->computeKD(mzz,m1,m2,hs,h1,h2,phi,phi1,psmela,psigps,pbkgps);   
+
+
+   double mzzTmpSig=0.0, mzzTmpBkg=double(mzz);
+   double melaTmp2;
+   if(isSignal){//signal sample at MH=125 GeV
+   mySMD->RecalculateMELA(false);
+   mzzTmpSig=double( mzz*(1.0+meanCB_err) );
+   if(mzzTmpSig>180.0 || mzzTmpSig<100){
+     cout<<"Entry #"<< i<<"   ATTENTION: changing scale up has moved mzz outside [100,180]: "<<mzzTmpSig<<endl;
+     mzzTmpSig=mzz;
+   }
+   mySMD->computeKD(mzzTmpSig, melapsigOut, melapbkgOut, smdSyst1Up, melaTmp2,psigTmp,pbkgTmp); 
+   if( smdSyst1Up<0.0)cout<<"Entry #"<< i<<"   New SMD with scale Up is "<<smdSyst1Up<<endl;
+   
+   mzzTmpSig=double( mzz*(1.0-meanCB_err) );
+   if(mzzTmpSig>180.0 || mzzTmpSig<100){
+     cout<<"Entry #"<< i<<"   ATTENTION: changing scale down has moved mzz outside [100,180]: "<<mzzTmpSig<<endl;
+     mzzTmpSig=mzz;
+   }
+   mySMD->computeKD(mzzTmpSig, melapsigOut, melapbkgOut, smdSyst1Down, melaTmp2,psigTmp,pbkgTmp);
+   mzzTmpSig=mzz* myR->Gaus(1.0,sigmaCB_err);
+   if(mzzTmpSig>180.0 || mzzTmpSig<100){
+     cout<<"Entry #"<< i<<"   ATTENTION: smearing scale has moved mzz outside [100,180]: "<<mzzTmpSig<<endl;
+     mzzTmpSig=mzz;
+   }
+   mySMD->computeKD(mzzTmpSig, melapsigOut, melapbkgOut, smdSyst2Up, melaTmp2,psigTmp,pbkgTmp);
+   smdSyst2Down=smdSyst2Up;
+   }//end if signal smaple at 125
+   else{
+     smdSyst1Up=smd;
+     smdSyst1Down=smd;
+     smdSyst2Up=smd;
+     smdSyst2Down=smd;
+   }
+
 
    // cout<<"Entry #"<<i<<" OLD-MELA="<<oldD<<"  New-MELA="<<mela<<"  SuperMELA="<<smd<<endl;
 

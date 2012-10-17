@@ -75,6 +75,8 @@ void testSuperMELAKD(){
  outTree->Branch("helphi",&phi,"helphi/F");
  outTree->Branch("phistarZ1",&phi1,"phistarZ1/F");
  outTree->Branch("ZZLD",&mela,"ZZLD/D");
+ outTree->Branch("ZZLD_PSig",&melapsig,"ZZLD_PSig/D");
+ outTree->Branch("ZZLD_PBkg",&melapbkg,"ZZLD_PBkg/D");
  outTree->Branch("superLD",&smd,"superLD/D");
  outTree->Branch("pseudoLD",&psmela,"pseudoLD/F");
  outTree->Branch("MC_weight",&w,"MC_weight/F");
@@ -117,10 +119,11 @@ void testSuperMELAKD(){
 
    // // // tell to SuperMELA the angles needed for recalculating MELA
    mySMD->SetDecayKinematics(m1,m2,hs,h1,h2,phi,phi1);
-   mySMD->computeKD(mzz,false,  smd,mela,psig,pbkg);
+   mySMD->computeKD(mzz,false,  smd,psig,pbkg,mela, melapsig,melapbkg);
    cout<<"Entry #"<<i<<" OLD-MELA="<<oldD<<"  New-MELA="<<mela<<"  SuperMELA="<<smd<<endl;
    
-   // mySMD->computeKD(mzz, melapsig, melapbkg,   smd,mela,psig,pbkg);
+   // // if you don't need to recalc mela
+   // mySMD->computeKD(mzz, melapsig, melapbkg,   smd,psig,pbkg,mela);
    // mypsLD->computeKD(mzz,m1,m2,hs,h1,h2,phi,phi1,psmela,psigps,pbkgps);
 
    outTree->Fill();

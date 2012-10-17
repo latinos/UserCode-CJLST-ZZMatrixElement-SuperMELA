@@ -54,7 +54,7 @@ void SuperMELA::SetDecayChannel(string myChan){
 
 
 
-void SuperMELA::computeKD(double m4l,double PSigMelaIn,double PBkgMelaIn,double &superMELA,double &MELA,double &Psig,double &Pbkg){
+void SuperMELA::computeKD(double m4l,double PSigMelaIn,double PBkgMelaIn,double &superMELA,double &Psig,double &Pbkg,double &MELA){
   
   mela_psig_=PSigMelaIn;
   mela_pbkg_=PBkgMelaIn;
@@ -97,7 +97,7 @@ void SuperMELA::computeKD(double m4l,double PSigMelaIn,double PBkgMelaIn,double 
 }//end computeKD
 
 
-void SuperMELA::computeKD(double m4l,bool use4vectors,double &superMELA,double &MELA,double &Psig,double &Pbkg){
+void SuperMELA::computeKD(double m4l,bool use4vectors,double &superMELA,double &Psig,double &Pbkg,double &MELA, double &MELA_psig, double &MELA_pbkg){
   try{
     if(!recalculateMELA_){
       throw 101;
@@ -136,6 +136,8 @@ void SuperMELA::computeKD(double m4l,bool use4vectors,double &superMELA,double &
 			 withPt,dumpt, withY,dumy);
   }
   MELA=double(melaTmp);
+  MELA_psig=double(mela_psig_);
+  MELA_pbkg=double(mela_pbkg_);
   if(verbose_)std::cout<<"MELA recalculated. MELA value set to "<<MELA<<std::endl;
 
 
@@ -159,7 +161,7 @@ void SuperMELA::computeKD(double m4l,bool use4vectors,double &superMELA,double &
 
 
 
-void SuperMELA::computeKD(std::pair<double, double> m4lPair,double PSigMelaIn,double PBkgMelaIn,double &superMELA,double &MELA,double &Psig,double &Pbkg){
+void SuperMELA::computeKD(std::pair<double, double> m4lPair,double PSigMelaIn,double PBkgMelaIn,double &superMELA,double &Psig,double &Pbkg,double &MELA){
   
   mela_psig_=PSigMelaIn;
   mela_pbkg_=PBkgMelaIn;
@@ -182,6 +184,7 @@ void SuperMELA::computeKD(std::pair<double, double> m4lPair,double PSigMelaIn,do
   
   //
   MELA=double(melaTmp);
+ 
   if( (m4lPair.first<80 || m4lPair.first>180) ||(m4lPair.second<80 || m4lPair.second>180)) {
     if(verbose_)    std::cout<<"WARNING from void SuperMELA::computeKD ! m4l outside range [80, 180]: "<<m4lPair.first<<" - "<<m4lPair.second<<" . Setting SuperMELA to dummy values."<<std::endl;
     Psig =0.0;
@@ -274,7 +277,7 @@ void SuperMELA::init(){
     mean_CB_err_=new RooFormulaVar("mean_CB_err",("("+str_mean_CB_err_m+"+"+str_mean_CB_err_e+")*@0").c_str(),RooArgList(dummyOne));
     sigma_CB_err_=new RooFormulaVar("sigma_CB_err",("("+str_sigma_CB_err_m+"+"+str_mean_CB_err_e+")*@0").c_str(),RooArgList(dummyOne));
   }
-
+  std::cout<<"Systematic from RooFormulaVar(), Mean and Sigma of CB: "<<mean_CB_err_->getVal()<<"  "<<sigma_CB_err_->getVal()<<endl;
   char rrvName[96];
   sprintf(rrvName,"CMS_zz4l_n_sig_%s_%d",strChan_.c_str(),int(sqrts_));
   n_CB_=new RooFormulaVar(rrvName,str_n_CB.c_str() ,RooArgList(*mH_rrv_));
@@ -384,7 +387,7 @@ void SuperMELA::readSigSystFromFile(string &str_mean_CB_err_e,
 
   //open text file
   string fCardName=pathToCards_+"inputs_"+strChan_+".txt";
-  if(verbose_)std::cout<<"Parsing input card "<<fCardName.c_str()<<std::endl;
+  if(verbose_)std::cout<<"Parsing signal shape systematics from input card "<<fCardName.c_str()<<std::endl;
   ifstream card(fCardName.c_str(),ios::in);
   string line;
   while(card.good()){
@@ -394,7 +397,7 @@ void SuperMELA::readSigSystFromFile(string &str_mean_CB_err_e,
     if(!(fields[0]=="systematic"&&fields[1]=="param"))continue;
     //ok, we found somethign interesting
     if(fields.size()!=4){
-      std::cout<<"Error in SuperMELA::readSigParsFromFile! Incorrect format of line "<<line.c_str()<<std::endl; 
+      std::cout<<"Error in SuperMELA::readSigSystFromFile! Incorrect format of line "<<line.c_str()<<std::endl; 
       break;
     }
     if(fields[2]=="CMS_zz4l_mean_m_sig"){
@@ -419,12 +422,12 @@ void SuperMELA::readSigSystFromFile(string &str_mean_CB_err_e,
   }//end while loop on lines
 
   try{
-    if(!(mean_e_OK&&sigma_e_OK&&mean_m_OK&&sigma_m_OK)){
+    if((!(mean_e_OK&&sigma_e_OK))&&(!(mean_m_OK&&sigma_m_OK))){
       throw 20;
     }
   }
   catch(int e){
-    std::cout<<"Exception "<<e <<" in SuperMELA::readSigParsFromFile! Not all signal shape formulas were read "<<mean_e_OK<<"  "<<sigma_e_OK<<"  "<<mean_m_OK<<"  "<<sigma_m_OK<<std::endl;
+    std::cout<<"Exception "<<e <<" in SuperMELA::readSigSystFromFile! Not all signal shape formulas were read "<<mean_e_OK<<"  "<<sigma_e_OK<<"  "<<mean_m_OK<<"  "<<sigma_m_OK<<std::endl;
   }
 
   card.close();
