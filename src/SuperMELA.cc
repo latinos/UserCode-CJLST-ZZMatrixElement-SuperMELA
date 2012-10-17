@@ -262,9 +262,19 @@ void SuperMELA::init(){
   RooRealVar  dummyOne("one","one",1.0);
   dummyOne.setConstant(true);
 
-  mean_CB_err_=new RooFormulaVar("mean_CB_err",(str_mean_CB_err_m+"*@0").c_str(),RooArgList(dummyOne));
-  sigma_CB_err_=new RooFormulaVar("sigma_CB_err",(str_sigma_CB_err_m+"*@0").c_str(),RooArgList(dummyOne));
- 
+  if(strChan_=="4mu"){
+    mean_CB_err_=new RooFormulaVar("mean_CB_err",("("+str_mean_CB_err_m+")*@0").c_str(),RooArgList(dummyOne));
+    sigma_CB_err_=new RooFormulaVar("sigma_CB_err",("("+str_sigma_CB_err_m+")*@0").c_str(),RooArgList(dummyOne));
+  }
+  else if(strChan_=="4e"){
+    mean_CB_err_=new RooFormulaVar("mean_CB_err",("("+str_mean_CB_err_e+")*@0").c_str(),RooArgList(dummyOne));
+    sigma_CB_err_=new RooFormulaVar("sigma_CB_err",("("+str_sigma_CB_err_e+")*@0").c_str(),RooArgList(dummyOne));
+  }
+  else{//2e2mu, we should have already checked that the string of the channel is a sensible one
+    mean_CB_err_=new RooFormulaVar("mean_CB_err",("("+str_mean_CB_err_m+"+"+str_mean_CB_err_e+")*@0").c_str(),RooArgList(dummyOne));
+    sigma_CB_err_=new RooFormulaVar("sigma_CB_err",("("+str_sigma_CB_err_m+"+"+str_mean_CB_err_e+")*@0").c_str(),RooArgList(dummyOne));
+  }
+
   char rrvName[96];
   sprintf(rrvName,"CMS_zz4l_n_sig_%s_%d",strChan_.c_str(),int(sqrts_));
   n_CB_=new RooFormulaVar(rrvName,str_n_CB.c_str() ,RooArgList(*mH_rrv_));
