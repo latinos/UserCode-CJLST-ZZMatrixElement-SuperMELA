@@ -32,6 +32,16 @@ SuperMELA::~SuperMELA(){
   delete qqZZ_pdf_;
   if(melaProd_!=0)delete melaProd_;
 
+  delete n_CB_; delete alpha_CB_; delete mean_CB_; delete sigma_CB_; delete meanTOT_CB_;
+  delete  mean_CB_err_; delete sigma_CB_err_;
+
+  delete a0_qqZZ_; delete  a1_qqZZ_; delete  a2_qqZZ_; delete  a3_qqZZ_; 
+  delete a4_qqZZ_; delete  a5_qqZZ_; delete  a6_qqZZ_; delete  a7_qqZZ_; 
+  delete a8_qqZZ_; delete  a9_qqZZ_; delete  a10_qqZZ_; delete a11_qqZZ_; 
+  delete a12_qqZZ_; delete a13_qqZZ_  ; 
+
+
+
 }
 
 void SuperMELA::SetDecayChannel(string myChan){
