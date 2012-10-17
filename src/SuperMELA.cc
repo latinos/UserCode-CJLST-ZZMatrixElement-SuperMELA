@@ -220,7 +220,7 @@ void SuperMELA::init(){
   ***/
 
   sig_CB_=new RooCBShape("signalCB_ggH","signalCB_ggH",*m4l_rrv_,*meanTOT_CB_,*sigma_CB_,*alpha_CB_,*n_CB_);
- 
+  
   if(verbose_)std::cout<<"Value of signal m4l shape is "<<sig_CB_->getVal()<<std::endl;
   norm_sig_CB_=sig_CB_->createIntegral( RooArgSet(*m4l_rrv_), RooFit::Range("shape"))->getVal();
   if(verbose_)std::cout<<"Normalization of signal m4l shape is "<<norm_sig_CB_<<std::endl;
