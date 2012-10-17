@@ -28,6 +28,11 @@ class SuperMELA {
   void computeKD(double m4l,bool use4vectors,
 		 double &superMELA,double &MELA,double &Psig,double &Pbkg);//out
 
+  //use the following if you want to use different values of m4l for PSig and PBkg (for syst unc studies)
+  void computeKD(std::pair<double, double> m4lPair,double PSigMelaIn,double PBkgMelaIn,   //in
+		 double &superMELA,double &MELA,double &Psig,double &Pbkg);//out
+
+  double GetSigShapeSystematic(string parName);
 
   //setters
   void  RecalculateMELA(bool recoMELA=true){recalculateMELA_=recoMELA;init();}//default is to take MELA as external input
@@ -40,11 +45,6 @@ class SuperMELA {
     init();
   }
 
-  void SetMeanCBsyst(double syst){  mean_CB_err_->setVal(syst); };
-  void SetSigmaCBsyst(double syst){ sigma_CB_err_->setVal(syst); };
-
-  double GetMeanCBsyst(){  return mean_CB_->getVal(); };
-  double GetSigmaCBsyst(){ return sigma_CB_->getVal(); };
 
   void SetMELAProbabilities(double myPsig,double myPbkg){
 
@@ -78,17 +78,18 @@ class SuperMELA {
   void SetPathToCards(string dirToCards){ pathToCards_=dirToCards;
     if(verbose_)std::cout<<"New path to cards is "<<pathToCards_.c_str()<<std::endl;}
 
-  void readSigSystFromFile(string &str_mean_CB_err_e,
-			   string &str_mean_CB_err_m,
-			   string &str_sigma_CB_err_e,
-			   string &str_sigma_CB_err_m);
+
 
  private:
 
   void readSigParsFromFile(string &str_mean_CB,string &str_sigma_CB ,string &str_n_CB ,string &str_alpha_CB);
   void readBkgParsFromFile(std::vector<double> &apars );
+  void readSigSystFromFile(string &str_mean_CB_err_e, string &str_mean_CB_err_m,
+			   string &str_sigma_CB_err_e, string &str_sigma_CB_err_m);
+
   void calc_mZZ_range(const double mHVal,double &low_M,double &high_M);
   std::pair<double,double>  superMelaLikelihoodDiscriminant (double m4l,double melaPsig,double melaPbkg);
+  std::pair<double,double>  superMelaLikelihoodDiscriminant (std::pair<double, double> m4lPair,double melaPsig,double melaPbkg);
   bool checkChannel();
   ///data members
   float mela_psig_,mela_pbkg_;
@@ -102,8 +103,8 @@ class SuperMELA {
   RooRealVar *m4l_rrv_;//this one is the variable!
   RooRealVar *mH_rrv_;//this one is a fixed param !
   RooRealVar *mean_dummy_,*sigma_dummy_,*alpha_dummy_,*n_dummy_;
-  RooRealVar *mean_CB_err_, *sigma_CB_err_;
   RooFormulaVar *n_CB_, *alpha_CB_,*mean_CB_,*sigma_CB_,*meanTOT_CB_;//,*gamma_BW_;
+  RooFormulaVar *mean_CB_err_, *sigma_CB_err_;
   RooCBShape *sig_CB_;
   double norm_sig_CB_;
 

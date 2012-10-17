@@ -10,6 +10,7 @@
 #include "TROOT.h"
 #include "TSystem.h"
 #include "TStyle.h"
+#include "TRandom3.h"
 
 void prodSuperMELAKD(){
   //load MELA and SuperMELA libraries
@@ -23,6 +24,7 @@ void prodSuperMELAKD(){
   string files[1]={"HZZ4lTree_jhuPseH125"};
   //string files[2]={"HZZ4lTree_H125","HZZ4lTree_H126"};
 
+  TRandom3 *myR=new TRandom3(4887);
 
   for(int ich=0;ich<3;ich++){
 
@@ -61,13 +63,14 @@ void prodSuperMELAKD(){
   sigTree->SetBranchAddress("ZZLD",&oldD);
   sigTree->SetBranchAddress("MC_weight",&w);
   sigTree->SetBranchAddress("MC_weight_noxsec",&w_noxsec);
-  //  sigTree->SetBranchAddress("mela_psig",&melapsig);
-  // sigTree->SetBranchAddress("mela_pbkg",&melapbkg);
+  sigTree->SetBranchAddress("mela_psig",&melapsig);
+  sigTree->SetBranchAddress("mela_pbkg",&melapbkg);
   // sigTree->SetBranchAddress("supermelaLD",&oldSMD);
   // sigTree->SetBranchAddress("supermela_psig",&oldSMDPsig);
   //sigTree->SetBranchAddress("supermela_pbkg",&oldSMDPbkg);
 
-  double smd,mela,psig,pbkg;
+  double smd, mela,psig,pbkg;
+  double smdSyst1Up, smdSyst1Down, smdSyst2Up, smdSyst2Down, melaTmp,psigTmp,pbkgTmp;
   float psmela,psigps,pbkgps;
 
  string outFileName=dirName+files[ifile]+"_withSMD.root";
@@ -86,6 +89,10 @@ void prodSuperMELAKD(){
  outTree->Branch("pseudoLD",&psmela,"pseudoLD/F");
  outTree->Branch("MC_weight",&w,"MC_weight/F");
  outTree->Branch("MC_weight_noxsec",&w_noxsec,"MC_weight_noxsec/F");
+ outTree->Branch("superLD_syst1Up",&smdSyst1Up,"superLD_syst1Up/D");
+ outTree->Branch("superLD_syst1Down",&smdSyst1Down,"superLD_syt1Down/D");
+ outTree->Branch("superLD_syst2Up",&smdSyst2Up,"superLD_syst2Up/D");
+ outTree->Branch("superLD_syst2Down",&smdSyst2Down,"superLD_syt2Down/D");
  // outTree->Branch("ZZLD",&oldD,"");
 
  PseudoMELA *mypsLD=new PseudoMELA();
@@ -97,6 +104,7 @@ void prodSuperMELAKD(){
  // mySMD->RecalculateMELA(true);
  //mySMD->SetVerbosity(true);
  mySMD->init();
+
  /*
  mySMD->computeKD(124.43, 0.8, 0.33,   smd,mela,psig,pbkg);
  cout<<"testKDSuperMELA (1):  SuperMELA="<<smd<<"  Psig="<<psig<<"   Pbkg="<<pbkg<<"  MELA="<<mela<<endl;
@@ -108,9 +116,11 @@ void prodSuperMELAKD(){
  cout<<"testKDSuperMELA (3):  SuperMELA="<<smd<<"  Psig="<<psig<<"   Pbkg="<<pbkg<<"  MELA="<<mela<<endl;
  */
 
- mySMD->RecalculateMELA(true);
+ mySMD->RecalculateMELA(false);
  mySMD->SetVerbosity(false);
 
+ double meanCB_err=mySMD->GetSigShapeSystematic("meanCB");
+ double sigmaCB_err=mySMD->GetSigShapeSystematic("sigmaCB");
 
  cout<<"Looping on test TTree"<<endl;
  int nDiff=0;
@@ -121,14 +131,30 @@ void prodSuperMELAKD(){
    sigTree->GetEntry(i);
    if(i%1000==0)cout<<"Entry #"<<i<<endl;
    if(mzz>180.0||mzz<100.0)continue;
-   mySMD->SetDecayKinematics(m1,m2,hs,h1,h2,phi,phi1);
 
-   // mySMD->computeKD(mzz, melapsig, melapbkg,   smd,mela,psig,pbkg);
-   mypsLD->computeKD(mzz,m1,m2,hs,h1,h2,phi,phi1,psmela,psigps,pbkgps);
-   mySMD->computeKD(mzz,false,  smd,mela,psig,pbkg);
+   mySMD->computeKD(mzz, melapsig, melapbkg, smd,mela,psig,pbkg);
+
+   double mzzTmpSig=0.0, mzzTmpBkg=double(mzz);
+   double melaTmp2;
+   mzzTmpSig=double( mzz*(1.0+meanCB_err) );
+   std::pair<double,double> mzzTmpPair = make_pair(mzzTmpSig, mzzTmpBkg);//Psig and Pbkg
+   mySMD->computeKD(mzzTmpPair, melapsig, melapbkg, smdSyst1Up, melaTmp2,psigTmp,pbkgTmp);
+ 
+   mzzTmpSig=double( mzz*(1.0-meanCB_err) );
+   mzzTmpPair = make_pair(mzzTmpSig, mzzTmpBkg);//Psig and Pbkg
+   mySMD->computeKD(mzzTmpPair, melapsig, melapbkg, smdSyst1Down, melaTmp2,psigTmp,pbkgTmp);
+ 
+   mzzTmpSig=mzz* myR->Gaus(1.0,sigmaCB_err);
+   mzzTmpPair = make_pair(mzzTmpSig,mzzTmpBkg);//Psig and Pbkg
+   mySMD->computeKD(mzzTmpPair, melapsig, melapbkg, smdSyst2Up, melaTmp2,psigTmp,pbkgTmp);
+   smdSyst2Down=smdSyst2Up;
+
+   //////for recalculating smd
+   //  mySMD->SetDecayKinematics(m1,m2,hs,h1,h2,phi,phi1);
+   //  mySMD->computeKD(mzz,false,  smd,mela,psig,pbkg);
+   //  mypsLD->computeKD(mzz,m1,m2,hs,h1,h2,phi,phi1,psmela,psigps,pbkgps);   
 
    // cout<<"Entry #"<<i<<" OLD-MELA="<<oldD<<"  New-MELA="<<mela<<"  SuperMELA="<<smd<<endl;
-
 
    // cout<<"Entry #"<<i<<"     SuperMELA="<<smd<<"  SuperMELA-PSig="<<psig<<"   SuperMELA-Pbkg="<<pbkg<<endl;
    // cout<<"Entry #"<<i<<"(OLD)SuperMELA="<<oldSMD<<"  SuperMELA-PSig="<<oldSMDPsig<<"   SuperMELA-Pbkg="<<oldSMDPbkg<<endl;

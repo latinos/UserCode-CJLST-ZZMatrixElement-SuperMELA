@@ -42,6 +42,8 @@ void SuperMELA::SetDecayChannel(string myChan){
   if(verbose_&&newChanOK)std::cout<<"Decay channel set successfully to "<<strChan_.c_str()<<std::endl;
 }//end SetDecayChannel
 
+
+
 void SuperMELA::computeKD(double m4l,double PSigMelaIn,double PBkgMelaIn,double &superMELA,double &MELA,double &Psig,double &Pbkg){
   
   mela_psig_=PSigMelaIn;
@@ -143,7 +145,74 @@ void SuperMELA::computeKD(double m4l,bool use4vectors,double &superMELA,double &
   Pbkg =supP.second;
   superMELA=Psig/(Psig+Pbkg);
   if(verbose_)std::cout<<"SuperMELA="<<superMELA<<"   PSig="<<Psig<<"   PBkg="<<Pbkg<<std::endl;
-}//end computeKD
+}//end computeKD (2nd implementation)
+
+
+
+void SuperMELA::computeKD(std::pair<double, double> m4lPair,double PSigMelaIn,double PBkgMelaIn,double &superMELA,double &MELA,double &Psig,double &Pbkg){
+  
+  mela_psig_=PSigMelaIn;
+  mela_pbkg_=PBkgMelaIn;
+  float melaTmp=mela_psig_ / (mela_psig_+mela_pbkg_);
+
+  if(recalculateMELA_){
+    double melaValIn= MELA;
+
+    float costheta1, costheta2, phi, costhetastar, phistar1;
+    bool withPt = false;
+    bool withY = false;
+    
+    //    melaProd_.computeKD(pL11, id11, pL12, id12, pL21, id21, pL22, id22,
+    melaProd_->computeKD(Z1_lept1_,Z1_lept1Id_,Z1_lept2_,Z1_lept2Id_, Z2_lept1_,Z2_lept1Id_,Z2_lept2_, Z2_lept2Id_,
+			 costhetastar, costheta1, costheta2, phi, phistar1, melaTmp, mela_psig_, mela_pbkg_,
+			withPt, withY);
+   
+    if(verbose_)std::cout<<"MELA recalculated. MELA value set from "<<melaValIn<<" to "<<melaTmp<<std::endl;
+  }//end if recalculateMELA
+  
+  //
+  MELA=double(melaTmp);
+  if( (m4lPair.first<80 || m4lPair.first>180) ||(m4lPair.second<80 || m4lPair.second>180)) {
+    if(verbose_)    std::cout<<"WARNING from void SuperMELA::computeKD ! m4l outside range [80, 180]: "<<m4lPair.first<<" - "<<m4lPair.second<<" . Setting SuperMELA to dummy values."<<std::endl;
+    Psig =0.0;
+    Pbkg =0.0;
+    superMELA=-1.0;
+    return;
+  }
+
+  pair<double,double> supP =  superMelaLikelihoodDiscriminant (m4lPair ,mela_psig_, mela_pbkg_);
+  //
+
+
+  Psig =supP.first;
+  Pbkg =supP.second;
+  superMELA=Psig/(Psig+Pbkg);
+  if(verbose_)std::cout<<"SuperMELA="<<superMELA<<"   PSig="<<Psig<<"   PBkg="<<Pbkg<<std::endl;
+
+}//end computeKD (for syst unc studies)
+
+
+double SuperMELA::GetSigShapeSystematic(string parName){
+
+  if(parName=="meanCB"){
+    return    mean_CB_err_->getVal();
+  }
+  else if(parName=="sigmaCB"){
+    return    sigma_CB_err_->getVal();
+  }
+  else{
+    try{
+      throw 40;
+    }
+    catch(int e){
+      if(e==40)std::cout<<"Exception "<<e<<"  in SuperMELA::GetSigShapeSystematic! Unrecognized type of parameter requested: "<<parName.c_str()<<"  . Valid options are meanCB ; sigmaCB" <<std::endl;
+      return 0.0;
+    }
+  }
+
+  return 0.0;
+
+}
 
 
 void SuperMELA::init(){
@@ -157,29 +226,35 @@ void SuperMELA::init(){
 
 
   //set parameters for signal m4l shape and calculate normalization
-  string   str_n_CB ;
+  string str_n_CB ;
   string   str_alpha_CB ;
   string   str_mean_CB ;
   string   str_sigma_CB ;
+  if(verbose_)std::cout<<"Reading signal shape formulas"<<std::endl;
+  readSigParsFromFile( str_mean_CB,str_sigma_CB ,str_n_CB ,str_alpha_CB);
+  if(verbose_){
+    std::cout<<"Read from input card the following formulas: "<<std::endl;
+    std::cout<<"Mean RooFormula (string): "<<str_mean_CB.c_str()<<std::endl;
+    std::cout<<"Sigma RooFormula (string): "<<str_sigma_CB.c_str()<<std::endl;
+  }
+
   //parameters for signal m4l shape systematics
   string   str_mean_CB_err_e;
   string   str_mean_CB_err_m;
   string   str_sigma_CB_err_e;
   string   str_sigma_CB_err_m;
-  //  double   mean_BW_d = mHVal_;
-  if(verbose_)std::cout<<"Reading signal shape formulas"<<std::endl;
-  readSigParsFromFile( str_mean_CB,str_sigma_CB ,str_n_CB ,str_alpha_CB);
   readSigSystFromFile( str_mean_CB_err_e,str_mean_CB_err_m,str_sigma_CB_err_e,str_sigma_CB_err_m);
   if(verbose_){
-    std::cout <<"mean_CB systematics: " << str_mean_CB_err_e << " " << str_mean_CB_err_m << std::endl;
-    std::cout <<"sigma_CB systematics: " << str_sigma_CB_err_e << " " << str_sigma_CB_err_m << std::endl;
-
-    std::cout<<"Read from input card the following formulas: "<<std::endl;
-    std::cout<<"Mean RooFormula (string): "<<str_mean_CB.c_str()<<std::endl;
-    std::cout<<"Sigma RooFormula (string): "<<str_sigma_CB.c_str()<<std::endl;
+    std::cout <<"mean_CB systematics (ele and mu): " << str_mean_CB_err_e << " " << str_mean_CB_err_m << std::endl;
+    std::cout <<"sigma_CB systematics (ele and mu): " << str_sigma_CB_err_e << " " << str_sigma_CB_err_m << std::endl;
   }
+ 
   RooRealVar  dummyOne("one","one",1.0);
   dummyOne.setConstant(true);
+
+  mean_CB_err_=new RooFormulaVar("mean_CB_err",(str_mean_CB_err_m+"*@0").c_str(),RooArgList(dummyOne));
+  sigma_CB_err_=new RooFormulaVar("sigma_CB_err",(str_sigma_CB_err_m+"*@0").c_str(),RooArgList(dummyOne));
+ 
   char rrvName[96];
   sprintf(rrvName,"CMS_zz4l_n_sig_%s_%d",strChan_.c_str(),int(sqrts_));
   n_CB_=new RooFormulaVar(rrvName,str_n_CB.c_str() ,RooArgList(*mH_rrv_));
@@ -188,15 +263,12 @@ void SuperMELA::init(){
 
   RooRealVar corr_mean_sig("CMS_zz4l_mean_sig_corrMH","CMS_zz4l_mean_sig_corrMH",0.0,-10.0,10.0);
   RooRealVar corr_sigma_sig("CMS_zz4l_sigma_sig_corrMH","CMS_zz4l_sigma_sig_corrMH",0.0,-10.0,10.0);
-  
-  mean_CB_err_ = new RooRealVar("mean_CB_err_","mean_CB_err_",0,-10,10);
-  mean_CB_=new RooFormulaVar("CMS_zz4l_mean_m_sig",("("+str_mean_CB+")+@0*@1+@0*@2*"+str_mean_CB_err_m).c_str(),RooArgList(*mH_rrv_,corr_mean_sig,*mean_CB_err_));//this is normalized by  mHVal_
+  mean_CB_=new RooFormulaVar("CMS_zz4l_mean_m_sig",("("+str_mean_CB+")+@0*@1").c_str(),RooArgList(*mH_rrv_,corr_mean_sig));//this is normalized by  mHVal_
   meanTOT_CB_=new RooFormulaVar("CMS_zz4l_mean_sig","(@0+@1)",RooArgList(*mH_rrv_,*mean_CB_));
 
   if(verbose_){    std::cout<<"Signal Mean vals -> Correction: "<<corr_mean_sig.getVal()<<"  Mean: "<<mean_CB_->getVal()<<"  Total: "<<meanTOT_CB_->getVal()<<std::endl;}
 
-  sigma_CB_err_ = new RooRealVar("sigma_CB_err_","sigma_CB_err_",0,-10,10);
-  sigma_CB_=new RooFormulaVar("CMS_zz4l_sigma_m_sig",("("+str_sigma_CB+")*(1+@1)*(1+@2*"+str_sigma_CB_err_m+")").c_str(),RooArgList(*mH_rrv_,corr_sigma_sig,*sigma_CB_err_ ));
+  sigma_CB_=new RooFormulaVar("CMS_zz4l_sigma_m_sig",("("+str_sigma_CB+")*(1+@1)").c_str(),RooArgList(*mH_rrv_,corr_sigma_sig ));
    
   if(verbose_){
     std::cout<<"Signal shape parameter values: "<<std::endl;
@@ -220,7 +292,7 @@ void SuperMELA::init(){
   ***/
 
   sig_CB_=new RooCBShape("signalCB_ggH","signalCB_ggH",*m4l_rrv_,*meanTOT_CB_,*sigma_CB_,*alpha_CB_,*n_CB_);
-  
+ 
   if(verbose_)std::cout<<"Value of signal m4l shape is "<<sig_CB_->getVal()<<std::endl;
   norm_sig_CB_=sig_CB_->createIntegral( RooArgSet(*m4l_rrv_), RooFit::Range("shape"))->getVal();
   if(verbose_)std::cout<<"Normalization of signal m4l shape is "<<norm_sig_CB_<<std::endl;
@@ -278,6 +350,9 @@ void SuperMELA::init(){
   }
 
 }//end init
+
+
+
 
 void SuperMELA::readSigSystFromFile(string &str_mean_CB_err_e,
 				    string &str_mean_CB_err_m,
@@ -456,6 +531,28 @@ std::pair<double,double>  SuperMELA::superMelaLikelihoodDiscriminant (double m4l
 
   return make_pair(Psig,Pbkg);
 }//end superMelaLikelihoodDiscriminant
+
+
+
+std::pair<double,double>  SuperMELA::superMelaLikelihoodDiscriminant (std::pair<double, double> m4lPair,double melaPsig,double melaPbkg){
+
+  m4l_rrv_->setVal(m4lPair.first);
+  if(verbose_)std::cout<<"In SuperMELA::superMelaLikelihoodDiscriminant,  m4lPSig="<<m4lPair.first<<"  m4lPBkg="<<m4lPair.second<<"  MELA-psig="<<melaPsig<<"  MELA-Pbkg="<<melaPbkg<<std::endl;
+  //calculate value of signal m4l pdf (normalize pdf to 1) 
+  double m4lPsig=sig_CB_->getVal() / norm_sig_CB_;
+  if(verbose_)std::cout<<"  m4lPsig="<<m4lPsig<<std::flush;
+  //calculate value of background m4l pdf  (normalize pdf to 1) 
+  m4l_rrv_->setVal(m4lPair.second);
+  double m4lPbkg=qqZZ_pdf_->getVal() / norm_bkg_qqZZ_;
+  if(verbose_)std::cout<<"  m4lPbkg="<<m4lPbkg<<std::endl;
+
+  //the angular probs given back by the Mela producer are already normalized to 1
+  double Psig=melaPsig*m4lPsig;
+  double Pbkg=melaPbkg*m4lPbkg;
+
+  return make_pair(Psig,Pbkg);
+}//end superMelaLikelihoodDiscriminant
+
 
 bool SuperMELA::checkChannel(){
   try{
