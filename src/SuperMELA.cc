@@ -58,7 +58,7 @@ void SuperMELA::computeKD(double m4l,double PSigMelaIn,double PBkgMelaIn,double 
   
   mela_psig_=PSigMelaIn;
   mela_pbkg_=PBkgMelaIn;
-  float melaTmp=mela_psig_ / (mela_psig_+mela_pbkg_);
+  float melaTmp=float(mela_psig_ / (mela_psig_+mela_pbkg_));
 
   if(recalculateMELA_){
     double melaValIn= MELA;
@@ -490,8 +490,8 @@ void SuperMELA::readBkgParsFromFile(std::vector<double> &apars ){
     split( fields, line, boost::is_any_of( " " ), boost::token_compress_on );
     if(fields[0]!="qqZZshape")continue;
     //  cout<<"Bkg Line selected: "<<line.c_str()<<std::endl;
-    if(fields.size()!=3){
-      std::cout<<"Error in SuperMELA::readSigParsFromFile! Incorrect format of line "<<line.c_str()<<std::endl; 
+    if(fields.size()<3){
+      std::cout<<"Error in SuperMELA::readSigParsFromFile! Incorrect format of line \'"<<line.c_str()<<"\' . It contains "<<fields.size()<<"fields (it should be 3)"<<std::endl; 
       break;
     }
 
@@ -513,7 +513,11 @@ void SuperMELA::readBkgParsFromFile(std::vector<double> &apars ){
     }
   }
   catch (int e){
-    if(e==30)std::cerr<<"Exception from void SuperMELA::readBkgParsFromFile(std::vector<double> apars ). Mismatched number of params of qqZZ shape read from card file "<<fCardName.c_str()<<" ---> "<<nFound<<" (it should be "<<nPars<<std::endl;
+    if(e==30){
+      std::cerr<<"Exception from void SuperMELA::readBkgParsFromFile(std::vector<double> apars ). Mismatched number of params of qqZZ shape read from card file "<<fCardName.c_str()<<" ---> "<<nFound<<" (it should be "<<nPars<<std::endl;
+      for(unsigned int j=0;j<apars.size();j++){std::cerr<<apars[j]<<"   "<<std::flush;}
+      std::cerr<<endl;
+    }
   }
   card.close();
 }//end readBkgParsFromFile

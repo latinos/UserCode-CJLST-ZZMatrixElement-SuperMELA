@@ -11,6 +11,17 @@
 #include "TSystem.h"
 #include "TStyle.h"
 #include "TRandom3.h"
+//#include <boost/filesystem.hpp> //it would be nice to have it properly installed on afs...
+
+bool checkFileExistence(string file){
+ 
+  //  if ( !boost::filesystem::exists( file.c_str() ) ) return false;
+  // return true;
+  
+  ifstream myfile(file.c_str());
+  if(!myfile.good()) return false;
+  return true;
+}
 
 void prodSuperMELAKD(){
   //load MELA and SuperMELA libraries
@@ -28,25 +39,32 @@ void prodSuperMELAKD(){
 
   for(int ich=0;ich<3;ich++){
 
-      if(ich!=0)continue;
+    //   if(ich!=0)continue;
 
-    string dirName="/afs/cern.ch/user/b/bonato/work/PhysAnalysis/HZZ4L/Trees_31082012/PRODFSR_"+str_sqrts+"/"+chan[ich]+"/";
+    // string dirName="/afs/cern.ch/user/b/bonato/work/PhysAnalysis/HZZ4L/Trees_31082012/PRODFSR_"+str_sqrts+"/"+chan[ich]+"/";
     //string dirName="/afs/cern.ch/user/b/bonato/work/PhysAnalysis/HZZ4L/Trees_31082012/JHU_"+str_sqrts+"/"+chan[ich]+"/";
 
+ 
 
-
-    // for(int ifile=0;ifile<nSamples;ifile++){
- for(int ifile=0;ifile<2;ifile++){
-
+    string chanDir=chan[ich];
+    if(chanDir=="2e2mu")chanDir="2mu2e";
+    string dirSqrtS=(str_sqrts=="7TeV"? "PRODFSR" : "PRODFSR_8TeV");
+   string dirName="root://lxcms02//data/Higgs/rootuplesOut/171012/"+dirSqrtS+"/"+chanDir+"/";
+    string outDirName="/afs/cern.ch/user/b/bonato/work/PhysAnalysis/HZZ4L/Trees_171012/PRODFSR_"+str_sqrts+"/"+chan[ich]+"/";
+    for(int ifile=0;ifile<nSamples;ifile++){
+      // for(int ifile=0;ifile<2;ifile++){
+      if(ifile!=1)continue;
     cout<<"\n----------\nProcessing "<<files[ifile].c_str()<<"  "<<chan[ich].c_str()<<endl;
 
-    bool isSignal=(files[ifile].find("H125")!=string::npos);
-
-
-
+    bool isSignal=(files[ifile].find("H125")!=string::npos)||(files[ifile].find("H126")!=string::npos);
 
   string fileName=dirName+files[ifile]+".root";
-  TFile *fIn=new TFile(fileName.c_str(),"READ");
+
+  //  if(!checkFileExistence(fileName)){
+  //  cout<<"\n\n\n\n!!!!!!!!!!!!!!!!!!!!!!!!!!\n\nWARNING : File "<<fileName.c_str()<<" NOT FOUND ! Skipping it"<<"\n\n!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n\n\n"<<endl;
+  //  continue;
+  // }
+  TFile *fIn=TFile::Open(fileName.c_str(),"READ");
   TTree *sigTree=(TTree*)fIn->Get("SelectedTree");
   
   //string fileName="./HZZ4lTree_H125_withDiscriminants.root";
@@ -59,6 +77,7 @@ void prodSuperMELAKD(){
  float mzz,melapsig,melapbkg;
  float oldSMD,oldSMDPsig,oldSMDPbkg;
  float m1,m2,hs,h1,h2,phi,phi1,oldD,w,w_noxsec;//,pt4l,Y4l
+ float oldPSD,oldGravD;
   sigTree->SetBranchAddress("Z2Mass",&m2);
   sigTree->SetBranchAddress("Z1Mass",&m1);
   sigTree->SetBranchAddress("ZZMass",&mzz);
@@ -68,19 +87,21 @@ void prodSuperMELAKD(){
   sigTree->SetBranchAddress("helphi",&phi);
   sigTree->SetBranchAddress("phistarZ1",&phi1);
   sigTree->SetBranchAddress("ZZLD",&oldD);
+  sigTree->SetBranchAddress("ZZpseudoLD",&oldPSD);
+  sigTree->SetBranchAddress("ZZgravLD",&oldGravD);
   sigTree->SetBranchAddress("MC_weight",&w);
   sigTree->SetBranchAddress("MC_weight_noxsec",&w_noxsec);
-  // sigTree->SetBranchAddress("mela_psig",&melapsig);
-  // sigTree->SetBranchAddress("mela_pbkg",&melapbkg);
+  sigTree->SetBranchAddress("ZZLD_PSig",&melapsig);
+  sigTree->SetBranchAddress("ZZLD_PBkg",&melapbkg);
   // sigTree->SetBranchAddress("supermelaLD",&oldSMD);
   // sigTree->SetBranchAddress("supermela_psig",&oldSMDPsig);
   //sigTree->SetBranchAddress("supermela_pbkg",&oldSMDPbkg);
 
   double smd, mela,psig,pbkg, melapsigOut,melapbkgOut;
   double smdSyst1Up, smdSyst1Down, smdSyst2Up, smdSyst2Down, melaTmp,psigTmp,pbkgTmp;
-  float psmela,psigps,pbkgps;
+  float psmela,psigps,pbkgps,gravimela;
 
- string outFileName=dirName+files[ifile]+"_withSMDv2.root";
+ string outFileName=outDirName+files[ifile]+"_withSMDv2.root";
  TFile *fout=new TFile(outFileName.c_str(),"RECREATE");
  TTree *outTree=new TTree("SelectedTree","SelectedTree");
  outTree->Branch("Z2Mass",&m2,"Z2Mass/F");
@@ -96,6 +117,7 @@ void prodSuperMELAKD(){
  outTree->Branch("ZZLD_PBkg",&melapbkgOut,"ZZLD_PBkg/D");
  outTree->Branch("superLD",&smd,"superLD/D");
  outTree->Branch("pseudoLD",&psmela,"pseudoLD/F");
+ outTree->Branch("graviLD",&gravimela,"graviLD/F");
  outTree->Branch("MC_weight",&w,"MC_weight/F");
  outTree->Branch("MC_weight_noxsec",&w_noxsec,"MC_weight_noxsec/F");
  outTree->Branch("superLD_syst1Up",&smdSyst1Up,"superLD_syst1Up/D");
@@ -114,18 +136,7 @@ void prodSuperMELAKD(){
  //mySMD->SetVerbosity(true);
  mySMD->init();
 
- /*
- mySMD->computeKD(124.43, 0.8, 0.33,   smd,mela,psig,pbkg);
- cout<<"testKDSuperMELA (1):  SuperMELA="<<smd<<"  Psig="<<psig<<"   Pbkg="<<pbkg<<"  MELA="<<mela<<endl;
- mySMD->computeKD(126.91, 0.52, 0.68,   smd,mela,psig,pbkg);
- cout<<"testKDSuperMELA (2):  SuperMELA="<<smd<<"  Psig="<<psig<<"   Pbkg="<<pbkg<<"  MELA="<<mela<<endl;
- mySMD->computeKD(136.19, 0.8, 0.33,   smd,mela,psig,pbkg);
- cout<<"testKDSuperMELA (3):  SuperMELA="<<smd<<"  Psig="<<psig<<"   Pbkg="<<pbkg<<"  MELA="<<mela<<endl;
- mySMD->computeKD(136.19, 0.21, 0.87,   smd,mela,psig,pbkg);
- cout<<"testKDSuperMELA (3):  SuperMELA="<<smd<<"  Psig="<<psig<<"   Pbkg="<<pbkg<<"  MELA="<<mela<<endl;
- */
-
- mySMD->RecalculateMELA(true);
+ mySMD->RecalculateMELA(false);
  mySMD->SetVerbosity(false);
 
  double meanCB_err=mySMD->GetSigShapeSystematic("meanCB");
@@ -133,41 +144,58 @@ void prodSuperMELAKD(){
  cout<<"Signal shape syst factors are MeanSystErr="<<meanCB_err<<"  SigmaSystErr="<<sigmaCB_err<<endl;
  cout<<"Looping on test TTree"<<endl;
  int nDiff=0;
- int maxEntries=1000;//sigTree->GetEntries();//1000;//sigTree->GetEntries()
+ int maxEntries=sigTree->GetEntries();//1000;//sigTree->GetEntries()
  TH1F *hSMD=new TH1F("hsmd"," SuperMELA",200,0.0,1.0);
 
  for(int i=0;i<maxEntries;i++){
    sigTree->GetEntry(i);
-   if(i%1000==0)cout<<"Entry #"<<i<<endl;
+   if(i%4000==0)cout<<"Entry #"<<i<<endl;
    if(mzz>180.0||mzz<100.0)continue;
 
-
-
-
-   /*****
+   psmela=oldPSD;
+   gravimela=oldGravD;
+   
+   ///////////////////
     //for regular way, no recalculation of MELA
-    melapsigOut=melapsig;
+   //  melapsigOut=melapsig;///melapsig is wrong in stat trees of 17/10/2012
     melapbkgOut=melapbkg;
-   mySMD->computeKD(mzz, melapsigOut, melapbkgOut, smd,mela,psig,pbkg);
+    melapsigOut=(oldD*melapbkgOut)/(1-oldD);
+    float melaNew=melapsigOut/(melapsigOut+melapbkgOut);
+    if(melaNew!=oldD)cout<<"ERROR calc PSig: "<<melaNew<<"  vs "<<oldD<<endl;
 
+    mySMD->computeKD(mzz, melapsigOut, melapbkgOut, smd,psig,pbkg,mela);
+    if(fabs(mela-double(melaNew))>1.0e-6) cout<<"ERROR calc MELA in SMD: "<<melaNew<<"  vs "<<mela<<"  Diff="<<mela-double(melaNew)<<endl;
+    mela=oldD;
    double mzzTmpSig=0.0, mzzTmpBkg=double(mzz);
    double melaTmp2;
-   mzzTmpSig=double( mzz*(1.0+meanCB_err) );
-   std::pair<double,double> mzzTmpPair = make_pair(mzzTmpSig, mzzTmpBkg);//Psig and Pbkg
-   mySMD->computeKD(mzzTmpPair, melapsig, melapbkg, smdSyst1Up, melaTmp2,psigTmp,pbkgTmp);
- 
-   mzzTmpSig=double( mzz*(1.0-meanCB_err) );
-   mzzTmpPair = make_pair(mzzTmpSig, mzzTmpBkg);//Psig and Pbkg
-   mySMD->computeKD(mzzTmpPair, melapsig, melapbkg, smdSyst1Down, melaTmp2,psigTmp,pbkgTmp);
- 
-   mzzTmpSig=mzz* myR->Gaus(1.0,sigmaCB_err);
-   mzzTmpPair = make_pair(mzzTmpSig,mzzTmpBkg);//Psig and Pbkg
-   mySMD->computeKD(mzzTmpPair, melapsig, melapbkg, smdSyst2Up, melaTmp2,psigTmp,pbkgTmp);
-   smdSyst2Down=smdSyst2Up;
-   *****/
 
+   if(isSignal){//signal sample at MH=125 GeV
+     mzzTmpSig=double( mzz*(1.0+meanCB_err) );
+     if(mzzTmpSig>180.0 || mzzTmpSig<100){
+       //cout<<"Entry #"<< i<<"   ATTENTION: changing scale up has moved mzz outside [100,180]: "<<mzzTmpSig<<endl;
+       mzzTmpSig=mzz;
+     }
+     mySMD->computeKD(mzzTmpSig, melapsigOut, melapbkgOut, smdSyst1Up,psigTmp,pbkgTmp, melaTmp2);
+ 
+     mzzTmpSig=double( mzz*(1.0-meanCB_err) );
+     if(mzzTmpSig>180.0 || mzzTmpSig<100) mzzTmpSig=mzz;
+     mySMD->computeKD(mzzTmpSig, melapsigOut, melapbkgOut, smdSyst1Down,psigTmp,pbkgTmp, melaTmp2);
+     
+     mzzTmpSig= myR->Gaus(1.0,sigmaCB_err);
+     if(mzzTmpSig>180.0 || mzzTmpSig<100) mzzTmpSig=mzz;
+     mySMD->computeKD(mzzTmpSig, melapsigOut, melapbkgOut, smdSyst2Up,psigTmp,pbkgTmp, melaTmp2);
+     smdSyst2Down=smdSyst2Up;
+   }//end if isSignal
+   else{
+     smdSyst1Up=smd;
+     smdSyst1Down=smd;
+     smdSyst2Up=smd;
+     smdSyst2Down=smd;
+   }
 
-   //////for recalculating smd
+   /*************
+    ////////////////////
+    //////for recalculating smd
    mySMD->RecalculateMELA(true);
    mySMD->SetDecayKinematics(m1,m2,hs,h1,h2,phi,phi1);
    mySMD->computeKD(mzz,false, smd,psig,pbkg,mela, melapsigOut, melapbkgOut);
@@ -180,7 +208,7 @@ void prodSuperMELAKD(){
    mySMD->RecalculateMELA(false);
    mzzTmpSig=double( mzz*(1.0+meanCB_err) );
    if(mzzTmpSig>180.0 || mzzTmpSig<100){
-     cout<<"Entry #"<< i<<"   ATTENTION: changing scale up has moved mzz outside [100,180]: "<<mzzTmpSig<<endl;
+     //cout<<"Entry #"<< i<<"   ATTENTION: changing scale up has moved mzz outside [100,180]: "<<mzzTmpSig<<endl;
      mzzTmpSig=mzz;
    }
    mySMD->computeKD(mzzTmpSig, melapsigOut, melapbkgOut, smdSyst1Up, melaTmp2,psigTmp,pbkgTmp); 
@@ -188,13 +216,13 @@ void prodSuperMELAKD(){
    
    mzzTmpSig=double( mzz*(1.0-meanCB_err) );
    if(mzzTmpSig>180.0 || mzzTmpSig<100){
-     cout<<"Entry #"<< i<<"   ATTENTION: changing scale down has moved mzz outside [100,180]: "<<mzzTmpSig<<endl;
+     // cout<<"Entry #"<< i<<"   ATTENTION: changing scale down has moved mzz outside [100,180]: "<<mzzTmpSig<<endl;
      mzzTmpSig=mzz;
    }
    mySMD->computeKD(mzzTmpSig, melapsigOut, melapbkgOut, smdSyst1Down, melaTmp2,psigTmp,pbkgTmp);
-   mzzTmpSig=mzz* myR->Gaus(1.0,sigmaCB_err);
+   mzzTmpSig= myR->Gaus(1.0,sigmaCB_err);
    if(mzzTmpSig>180.0 || mzzTmpSig<100){
-     cout<<"Entry #"<< i<<"   ATTENTION: smearing scale has moved mzz outside [100,180]: "<<mzzTmpSig<<endl;
+     //  cout<<"Entry #"<< i<<"   ATTENTION: smearing scale has moved mzz outside [100,180]: "<<mzzTmpSig<<endl;
      mzzTmpSig=mzz;
    }
    mySMD->computeKD(mzzTmpSig, melapsigOut, melapbkgOut, smdSyst2Up, melaTmp2,psigTmp,pbkgTmp);
@@ -206,7 +234,7 @@ void prodSuperMELAKD(){
      smdSyst2Up=smd;
      smdSyst2Down=smd;
    }
-
+   *******/
 
    // cout<<"Entry #"<<i<<" OLD-MELA="<<oldD<<"  New-MELA="<<mela<<"  SuperMELA="<<smd<<endl;
 
@@ -224,21 +252,34 @@ void prodSuperMELAKD(){
 
  cout<<"Finished to loop on "<<maxEntries<<" events. "<<nDiff<<" have the new SMD different by >10% respect to what is stored i nthe original TTree"<<std::endl;
 
-
+ cout<<"Writing to "<<fout->GetName()<<"   "<<endl;
  fout->cd();
  outTree->Write();
+ // cout<<"and deleting file"<<endl;
  delete fout;
- TCanvas *c2=new TCanvas("cc2","CC2",1000,1000);
- c2->cd();
- hSMD->SetXTitle("SuperMELA");
- hSMD->SetYTitle("# events");
- hSMD->Draw();
- c2->SaveAs(("can_"+files[ifile]+"_SuperMELA.root").c_str());
-
 
  delete  mySMD;
  delete  mypsLD;
-  }//end loop on ifile (samples to process for this channel)
+
+
+ /*
+ cout<<"canvas"<<endl;
+ TCanvas *c2=new TCanvas("cc2","CC2",1000,1000);
+ c2->cd();
+ cout<<"canvas 2"<<endl;
+ hSMD->SetXTitle("SuperMELA");
+ hSMD->SetYTitle("# events");
+ hSMD->Draw();
+ cout<<"histo drawn"<<endl;
+ c2->SaveAs(("can_"+files[ifile]+"_SuperMELA.root").c_str());
+ cout<<"saved canbvas"<<endl;
+ delete c2;
+ cout<<"deleting last pointers"<<endl;
+
+ delete hSMD;
+ */
+
+   }//end loop on ifile (samples to process for this channel)
   }//end loop on ich (channels)
 
 }//end main
