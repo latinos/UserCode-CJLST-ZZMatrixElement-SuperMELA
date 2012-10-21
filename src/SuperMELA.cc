@@ -4,6 +4,7 @@
 #include "RooArgSet.h"
 #include "RooArgList.h"
 #include "HiggsAnalysis/HZZ4L_CombinationPy/CreateDatacards/include/HiggsCSandWidth.cc"
+#include "RooPlot.h"
 
 using namespace RooFit;
 
@@ -28,12 +29,15 @@ SuperMELA::SuperMELA(double mH,string channel,int LHCsqrts){
 
 SuperMELA::~SuperMELA(){
 
-  delete sig_CB_;
+  delete sig_CB_;delete sig_BW_;delete sig_FFT_;
   delete qqZZ_pdf_;
   if(melaProd_!=0)delete melaProd_;
 
-  delete n_CB_; delete alpha_CB_; delete mean_CB_; delete sigma_CB_; delete meanTOT_CB_;
+  delete n_CB_; delete alpha_CB_; delete n2_CB_; delete alpha2_CB_; 
+  delete mean_CB_; delete sigma_CB_; delete meanTOT_CB_;
   delete  mean_CB_err_; delete sigma_CB_err_;
+
+  delete  mean_BW_;  delete  width_BW_;
 
   delete a0_qqZZ_; delete  a1_qqZZ_; delete  a2_qqZZ_; delete  a3_qqZZ_; 
   delete a4_qqZZ_; delete  a5_qqZZ_; delete  a6_qqZZ_; delete  a7_qqZZ_; 
@@ -239,12 +243,12 @@ void SuperMELA::init(){
 
 
   //set parameters for signal m4l shape and calculate normalization
-  string str_n_CB ;
-  string   str_alpha_CB ;
+  string str_n_CB ;  string   str_alpha_CB ;
+  string str_n2_CB ;  string   str_alpha2_CB ;
   string   str_mean_CB ;
   string   str_sigma_CB ;
   if(verbose_)std::cout<<"Reading signal shape formulas"<<std::endl;
-  readSigParsFromFile( str_mean_CB,str_sigma_CB ,str_n_CB ,str_alpha_CB);
+  readSigParsFromFile( str_mean_CB,str_sigma_CB ,str_n_CB ,str_alpha_CB ,str_n2_CB ,str_alpha2_CB);
   if(verbose_){
     std::cout<<"Read from input card the following formulas: "<<std::endl;
     std::cout<<"Mean RooFormula (string): "<<str_mean_CB.c_str()<<std::endl;
@@ -278,11 +282,16 @@ void SuperMELA::init(){
     sigma_CB_err_=new RooFormulaVar("sigma_CB_err",("("+str_sigma_CB_err_m+"+"+str_mean_CB_err_e+")*@0").c_str(),RooArgList(dummyOne));
   }
   std::cout<<"Systematic from RooFormulaVar(), Mean and Sigma of CB: "<<mean_CB_err_->getVal()<<"  "<<sigma_CB_err_->getVal()<<endl;
+
   char rrvName[96];
   sprintf(rrvName,"CMS_zz4l_n_sig_%s_%d",strChan_.c_str(),int(sqrts_));
   n_CB_=new RooFormulaVar(rrvName,str_n_CB.c_str() ,RooArgList(*mH_rrv_));
   sprintf(rrvName,"CMS_zz4l_alpha_sig_%s_%d",strChan_.c_str(),int(sqrts_));
-  alpha_CB_=new RooFormulaVar(rrvName,str_alpha_CB.c_str() ,RooArgList(dummyOne));
+  alpha_CB_=new RooFormulaVar(rrvName,str_alpha_CB.c_str() ,RooArgList(*mH_rrv_));
+  sprintf(rrvName,"CMS_zz4l_n2_sig_%s_%d",strChan_.c_str(),int(sqrts_));
+  n2_CB_=new RooFormulaVar(rrvName,str_n2_CB.c_str() ,RooArgList(*mH_rrv_));
+  sprintf(rrvName,"CMS_zz4l_alpha2_sig_%s_%d",strChan_.c_str(),int(sqrts_));
+  alpha2_CB_=new RooFormulaVar(rrvName,str_alpha2_CB.c_str() ,RooArgList(*mH_rrv_));
 
   RooRealVar corr_mean_sig("CMS_zz4l_mean_sig_corrMH","CMS_zz4l_mean_sig_corrMH",0.0,-10.0,10.0);
   RooRealVar corr_sigma_sig("CMS_zz4l_sigma_sig_corrMH","CMS_zz4l_sigma_sig_corrMH",0.0,-10.0,10.0);
@@ -293,12 +302,27 @@ void SuperMELA::init(){
 
   sigma_CB_=new RooFormulaVar("CMS_zz4l_sigma_m_sig",("("+str_sigma_CB+")*(1+@1)").c_str(),RooArgList(*mH_rrv_,corr_sigma_sig ));
    
+
+  //for high-mass one neesd also a gamma RooFormulaVar, 
+  //but we don't care if we stop at 180 GeV
+  sprintf(rrvName,"CMS_zz4l_mean_BW_sig_%s_%d",strChan_.c_str(),int(sqrts_));
+  mean_BW_=new RooRealVar(rrvName,"CMS_zz4l_mean_BW",mHVal_,100.0,1000.0);
+  sprintf(rrvName,"CMS_zz4l_width_BW_sig_%s_%d",strChan_.c_str(),int(sqrts_));
+  width_BW_=new RooRealVar(rrvName,"CMS_zz4l_width_BW",1.0);
+  mean_BW_->setVal(mHVal_);
+  mean_BW_->setConstant(true);
+  width_BW_->setConstant(true);
+
   if(verbose_){
     std::cout<<"Signal shape parameter values: "<<std::endl;
     std::cout<<"Mean (formula value) = "<<meanTOT_CB_->getVal()<<std::endl;
     std::cout<<"Sigma (formula value) = "<<sigma_CB_->getVal()<<std::endl;
     std::cout<<"n (formula value) = "<<n_CB_->getVal()<<std::endl;
     std::cout<<"alpha (formula value) = "<<alpha_CB_->getVal()<<std::endl;
+    std::cout<<"n2 (formula value) = "<<n2_CB_->getVal()<<std::endl;
+    std::cout<<"alpha2 (formula value) = "<<alpha2_CB_->getVal()<<std::endl;
+    std::cout<<"Mean BW (realvar value) = "<<mean_BW_->getVal()<<std::endl;
+    std::cout<<"Width BW (realvar value) = "<<width_BW_->getVal()<<std::endl;
   }
 
   /***
@@ -314,12 +338,37 @@ void SuperMELA::init(){
  sig_CB_=new RooCBShape("signalCB_ggH","signalCB_ggH",*m4l_rrv_,*mean_dummy_,*sigma_dummy_,*alpha_dummy_,*n_dummy_);
   ***/
 
-  sig_CB_=new RooCBShape("signalCB_ggH","signalCB_ggH",*m4l_rrv_,*meanTOT_CB_,*sigma_CB_,*alpha_CB_,*n_CB_);
- 
-  if(verbose_)std::cout<<"Value of signal m4l shape is "<<sig_CB_->getVal()<<std::endl;
-  norm_sig_CB_=sig_CB_->createIntegral( RooArgSet(*m4l_rrv_), RooFit::Range("shape"))->getVal();
-  if(verbose_)std::cout<<"Normalization of signal m4l shape is "<<norm_sig_CB_<<std::endl;
+  //  sig_CB_=new RooCBShape("signalCB_ggH","signalCB_ggH",*m4l_rrv_,*meanTOT_CB_,*sigma_CB_,*alpha_CB_,*n_CB_);
+  sig_CB_ =new RooDoubleCB("signalCB_ggH","signalCB_ggH",*m4l_rrv_,*meanTOT_CB_,*sigma_CB_,*alpha_CB_,*n_CB_,*alpha2_CB_,*n2_CB_);
+  sig_BW_ =new RooRelBWUFParam("signalBW_ggH", "signalBW_ggH",*m4l_rrv_,*mean_BW_,*width_BW_);
+  sig_FFT_=new RooFFTConvPdf("signal_ggH","BW (X) CB",*m4l_rrv_,*sig_BW_,*sig_CB_,2);
+  sig_FFT_->setBufferFraction(0.2);
+  if(verbose_){
+    m4l_rrv_->setVal(125.0);
+    std::cout<<"Value of signal m4l CB  shape is "<<sig_CB_->getVal()<<std::endl;
+    std::cout<<"Value of signal m4l BW  shape is "<<sig_BW_->getVal()<<std::endl;
+    std::cout<<"Value of signal m4l FFT shape is "<<sig_FFT_->getVal()<<std::endl;
+  }
+  norm_sig_CB_ =sig_CB_->createIntegral( RooArgSet(*m4l_rrv_), RooFit::Range("shape"))->getVal();
+  if(verbose_)std::cout<<"Normalization of signal m4l CB shape is "<<norm_sig_CB_<<std::endl;
+  std::cout<<"\n---> Integrating Breit-Wigner:"<<std::endl;
+  double norm_sig_BW_ =sig_BW_->createIntegral( RooArgSet(*m4l_rrv_), RooFit::Range("shape"))->getVal();
+  if(verbose_)std::cout<<"Normalization of signal m4l BW shape is "<<norm_sig_BW_<<std::endl;
+  std::cout<<"\n---> Integrating full signal:"<<std::endl;
+  norm_sig_FFT_=sig_FFT_->createIntegral( RooArgSet(*m4l_rrv_), RooFit::Range("shape"))->getVal();
+  if(verbose_)std::cout<<"Normalization of signal m4l shape is "<<norm_sig_FFT_<<std::endl;
   //set parameters for background m4l shape and calculate normalization
+
+  TCanvas *csig=new TCanvas("canSig","CANVAS SIG SHAPES",800,800);
+  csig->cd();
+  RooPlot *xf=m4l_rrv_->frame();
+  sig_CB_->plotOn(xf,RooFit::LineColor(kRed),RooFit::Normalization(1.0,2));
+  // sig_BW_->plotOn(xf,RooFit::LineColor(kBlue),RooFit::Normalization(1.0,2));
+  sig_FFT_->plotOn(xf,RooFit::LineColor(kBlack),RooFit::Normalization(1.0,2));
+  xf->Draw();
+  csig->SaveAs( ("can_sigShapes_"+strChan_+".root").c_str());
+  delete csig;
+
   if(verbose_)std::cout<<"Reading background shape parameters"<<std::endl;
   std::vector<double> v_apars;
   readBkgParsFromFile(v_apars);
@@ -434,9 +483,9 @@ void SuperMELA::readSigSystFromFile(string &str_mean_CB_err_e,
 
 }
 
-void  SuperMELA::readSigParsFromFile(string &str_mean_CB,string &str_sigma_CB ,string &str_n_CB ,string &str_alpha_CB){
+void  SuperMELA::readSigParsFromFile(string &str_mean_CB,string &str_sigma_CB ,string &str_n_CB ,string &str_alpha_CB ,string &str_n2_CB ,string &str_alpha2_CB){
 
-  bool meanOK=false,sigmaOK=false,nOK=false,alphaOK=false;
+  bool meanOK=false,sigmaOK=false,nOK=false,alphaOK=false,n2OK=false,alpha2OK=false;
   //open text file
   string fCardName=pathToCards_+"inputs_"+strChan_+".txt";
   if(verbose_)std::cout<<"Parsing input card "<<fCardName.c_str()<<std::endl;
@@ -448,26 +497,30 @@ void  SuperMELA::readSigParsFromFile(string &str_mean_CB,string &str_sigma_CB ,s
     split( fields, line, boost::is_any_of( " " ), boost::token_compress_on );
     if(fields[0]!="signalShape")continue;
     //ok, we found somethign interesting
-    if(fields.size()!=3){
-      std::cout<<"Error in SuperMELA::readSigParsFromFile! Incorrect format of line "<<line.c_str()<<std::endl; 
+    if(fields.size()<3){
+      std::cout<<"Error in SuperMELA::readSigParsFromFile! Incorrect format of line "<<line.c_str()<<" There should be at least three fields, I could find only "<<fields.size() << " fields."<<std::endl; 
       break;
     }
     if(fields[1]=="n_CB"){str_n_CB=fields[2];nOK=true;}
     if(fields[1]=="alpha_CB"){str_alpha_CB=fields[2];alphaOK=true;}
+    if(fields[1]=="n2_CB"){str_n2_CB=fields[2];n2OK=true;}
+    if(fields[1]=="alpha2_CB"){str_alpha2_CB=fields[2];alpha2OK=true;}
     if(fields[1]=="mean_CB"){str_mean_CB=fields[2];meanOK=true;}
     if(fields[1]=="sigma_CB"){str_sigma_CB=fields[2];sigmaOK=true;}
     
-    if(meanOK&&sigmaOK&&alphaOK&&nOK)break;
+    if(meanOK&&sigmaOK&&alphaOK&&nOK&&alpha2OK&&n2OK)break;
   }//end while loop on lines
 
-  try{
-    if(!(meanOK&&sigmaOK&&alphaOK&&nOK)){
+  //  try{
+    if(!(meanOK&&sigmaOK&&alphaOK&&nOK&&alpha2OK&&n2OK)){
+      std::cout<<"Exception  in SuperMELA::readSigParsFromFile! Not all signal shape formulas were read "<<meanOK<<" "<<sigmaOK<<"  "<<alphaOK<<"  "<<nOK<<"  "<<alpha2OK<<"  "<<n2OK<<std::endl;
+
       throw 20;
     }
-  }
-  catch(int e){
-    std::cout<<"Exception "<<e <<" in SuperMELA::readSigParsFromFile! Not all signal shape formulas were read "<<meanOK<<" "<<sigmaOK<<"  "<<alphaOK<<"  "<<nOK<<std::endl;
-  }
+    // }
+  //  catch(int e){
+    //  std::cout<<"Exception  in SuperMELA::readSigParsFromFile! Not all signal shape formulas were read "<<meanOK<<" "<<sigmaOK<<"  "<<alphaOK<<"  "<<nOK<<"  "<<alpha2OK<<"  "<<n2OK<<std::endl;
+  // }
 
   card.close();
 

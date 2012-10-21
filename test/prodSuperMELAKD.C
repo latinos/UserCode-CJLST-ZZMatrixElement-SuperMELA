@@ -39,21 +39,17 @@ void prodSuperMELAKD(){
 
   for(int ich=0;ich<3;ich++){
 
-    //   if(ich!=0)continue;
-
-    // string dirName="/afs/cern.ch/user/b/bonato/work/PhysAnalysis/HZZ4L/Trees_31082012/PRODFSR_"+str_sqrts+"/"+chan[ich]+"/";
-    //string dirName="/afs/cern.ch/user/b/bonato/work/PhysAnalysis/HZZ4L/Trees_31082012/JHU_"+str_sqrts+"/"+chan[ich]+"/";
-
+    // if(ich!=2)continue;
  
 
     string chanDir=chan[ich];
     if(chanDir=="2e2mu")chanDir="2mu2e";
     string dirSqrtS=(str_sqrts=="7TeV"? "PRODFSR" : "PRODFSR_8TeV");
-   string dirName="root://lxcms02//data/Higgs/rootuplesOut/171012/"+dirSqrtS+"/"+chanDir+"/";
+    string dirName="root://lxcms02//data/Higgs/rootuplesOut/171012/"+dirSqrtS+"/"+chanDir+"/";
     string outDirName="/afs/cern.ch/user/b/bonato/work/PhysAnalysis/HZZ4L/Trees_171012/PRODFSR_"+str_sqrts+"/"+chan[ich]+"/";
-    for(int ifile=0;ifile<nSamples;ifile++){
-      // for(int ifile=0;ifile<2;ifile++){
-      if(ifile!=1)continue;
+    for(int ifile=0;ifile<nSamples;ifile++){     
+      // if(ifile!=1)continue;
+
     cout<<"\n----------\nProcessing "<<files[ifile].c_str()<<"  "<<chan[ich].c_str()<<endl;
 
     bool isSignal=(files[ifile].find("H125")!=string::npos)||(files[ifile].find("H126")!=string::npos);
@@ -101,7 +97,7 @@ void prodSuperMELAKD(){
   double smdSyst1Up, smdSyst1Down, smdSyst2Up, smdSyst2Down, melaTmp,psigTmp,pbkgTmp;
   float psmela,psigps,pbkgps,gravimela;
 
- string outFileName=outDirName+files[ifile]+"_withSMDv2.root";
+ string outFileName=outDirName+files[ifile]+"_withSMD_doubleCBonly.root";
  TFile *fout=new TFile(outFileName.c_str(),"RECREATE");
  TTree *outTree=new TTree("SelectedTree","SelectedTree");
  outTree->Branch("Z2Mass",&m2,"Z2Mass/F");
@@ -131,13 +127,12 @@ void prodSuperMELAKD(){
  SuperMELA *mySMD=new SuperMELA(125.0,chan[ich],8);
  // mySMD->SetDecayChannel(chan[1]);
  // mySMD->SetMH(126.0);
- mySMD->SetPathToCards("/afs/cern.ch/user/b/bonato/work/PhysAnalysis/HZZ4L/spin/CMSSW_5_2_5/src/HiggsAnalysis/HZZ4L_CombinationPy/CreateDatacards/SM_inputs_"+str_sqrts+"/");
+ mySMD->SetPathToCards("/afs/cern.ch/user/b/bonato/work/PhysAnalysis/HZZ4L/spin/SuperMELA/CMSSW_5_3_3_patch3/src/HiggsAnalysis/HZZ4L_CombinationPy/CreateDatacards/SM_inputs_"+str_sqrts+"/");
  // mySMD->RecalculateMELA(true);
- //mySMD->SetVerbosity(true);
+ mySMD->SetVerbosity(true);
  mySMD->init();
 
- mySMD->RecalculateMELA(false);
- mySMD->SetVerbosity(false);
+
 
  double meanCB_err=mySMD->GetSigShapeSystematic("meanCB");
  double sigmaCB_err=mySMD->GetSigShapeSystematic("sigmaCB");
@@ -146,6 +141,7 @@ void prodSuperMELAKD(){
  int nDiff=0;
  int maxEntries=sigTree->GetEntries();//1000;//sigTree->GetEntries()
  TH1F *hSMD=new TH1F("hsmd"," SuperMELA",200,0.0,1.0);
+ mySMD->SetVerbosity(false);
 
  for(int i=0;i<maxEntries;i++){
    sigTree->GetEntry(i);
