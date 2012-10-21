@@ -4,7 +4,7 @@ Required packages and installation:
 cvs co -A HiggsAnalysis/CombinedLimit
 cvs co -r V00-01-05 -d ZZMatrixElement/MELA  UserCode/CJLST/ZZMatrixElement/MELA/
 cvs co -r bonato_supermela_20121021_doubleCB -d ZZMatrixElement/SuperMELA  UserCode/CJLST/ZZMatrixElement/SuperMELA/
-cvs co -A -d HiggsAnalysis/HZZ4L_CombinationPy/ UserCode/HZZ4L_Combination/CombinationPy
+cvs co -r bonato_supermela_20121021 -d HiggsAnalysis/HZZ4L_CombinationPy/ UserCode/HZZ4L_Combination/CombinationPy
 
 scram b -j7 #it will take >20 minutes
 
@@ -91,26 +91,25 @@ some files from ZZMatrixElement/SuperMELA/
 
 cd $CMSSW_BASE/src/
 cp ZZMatrixElement/SuperMELA/scripts/datacardClassSMD.py  HiggsAnalysis/HZZ4L_CombinationPy/CreateDatacards/
-cp ZZMatrixElement/SuperMELA/scripts/systematicsClass.py  HiggsAnalysis/HZZ4L_CombinationPy/CreateDatacards/
+cp ZZMatrixElement/SuperMELA/scripts/systematicsClassSMD.py  HiggsAnalysis/HZZ4L_CombinationPy/CreateDatacards/
+cp ZZMatrixElement/SuperMELA/scripts/makeDCsandWSsSMD.py  HiggsAnalysis/HZZ4L_CombinationPy/CreateDatacards/
 cd HiggsAnalysis/HZZ4L_CombinationPy/CreateDatacards/
 
-change in makeDCsandWSs.py: datacardClass.py ---> datacardClassSMD.py
-and run it (example for 8TeV):
-python makeDCsandWSs.py -i SM_inputs_8TeV -a HypTest_smd_8TeV -b -t templates2D_smd_8TeV/ > output_HypTest_smd_8TeV.txt
+You must set the correct flags and parameters in the default input cards in SM_inputs_8TeV 
+for creating cards and ws suitable for hypothesis testing !
+
+Run it using makeDCsandWSsSMD.py instead of the usual makeDCsandWSs.py (example for 8TeV):
+python makeDCsandWSsSMD.py -i SM_inputs_8TeV -a HypTest_smd_8TeV -b -t templates2D_smd_8TeV/ > output_HypTest_smd_8TeV.txt
 
 This special version of datacardClass will produce cards to be used with Combine !
 Also, there is no point in creating cards and ws for a mass different
 to what was used in the calculation of superMELA for the templates.
 
-WARNING (2012/10/11): the card making 
-code is changed in parallel to my studies on superMELA. As a consequence, 
-the current version of datacardClassSMD.py is not in sync anymore with what
-is on the HEAD of CreateDatacards/datacardClass.py .
-What it  should be done is to take what is currently in the HEAD of 
-UserCode/HZZ4L_Combination/CombinationPy/CreateDatacards/datacardClass.py
-and port the 2D superMELA features of datacardClassSMD.py into it .  
-If somebody does it, please commit the changes to datacardClassSMD.py
-and edit this warning message.
+WARNING: the special scripts for making cards for Hyp separation is based on
+the tag bonato_supermela_20121021 of the card-making package.
+Make sure that there were no relevant updates on top of it. A better
+solution thta does not force us to keep the packages in sync by hand
+has to be worked out in the future.
 
 
 ******************************

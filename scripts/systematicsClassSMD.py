@@ -73,6 +73,7 @@ class systematicsClass:
         self.ggVV_pdfSys = 1. + 0.0066*math.sqrt(self.mH - 10.)
             
         self.doSigSystHypTest = False  
+                  
 
 
     def setSystematics(self,theRateBkg_qqZZ,theRateBkg_ggZZ,theRateBkg_zjets ):
@@ -130,6 +131,7 @@ class systematicsClass:
         self.eSelError = 1 + math.sqrt( self.sel_elefull*self.sel_elefull + self.sel_eletrig*self.sel_eletrig )
         self.muSelError2e2mu = 1 + math.sqrt( self.sel_muonfull*self.sel_muonfull/4 + self.sel_muontrig*self.sel_muontrig/4 )
         self.eSelError2e2mu = 1 + math.sqrt( self.sel_elefull*self.sel_elefull/4 + self.sel_eletrig*self.sel_eletrig/4 )
+
 
     def Write_Systematics_Line(self,systLine,theFile,theInputs):
         print "~~~~~~~~~~~~~~~~~"
@@ -557,10 +559,7 @@ class systematicsClass:
     def WriteSystematics(self,theFile,theInputs,doHypTest=False):
 
         self.doSigSystHypTest = doHypTest
-        if (self.doSigSystHypTest) :
-            print "doSigSystHypTest is True"
-        else:
-            print "doSigSystHypTest is False"
+
         if theInputs['useLumiUnc']:
             self.Build_lumi(theFile,theInputs)
 
@@ -635,6 +634,7 @@ class systematicsClass:
         N_CB_errPerCent = theInputs['CMS_zz4l_n_sig']
         meanCB_m_errPerCent = theInputs['CMS_zz4l_mean_m_sig']
         sigmaCB_m_errPerCent = theInputs['CMS_zz4l_sigma_m_sig']
+        Gamma_BW_errPerCent = theInputs['CMS_zz4l_gamma_sig']
         
         if( self.channel == self.ID_4mu):
 
@@ -644,6 +644,8 @@ class systematicsClass:
                 theFile.write("CMS_zz4l_sigma_m_sig param 0.0 {0} \n".format(sigmaCB_m_errPerCent))
             if theInputs['useCMS_zz4l_n']:
                 theFile.write("CMS_zz4l_n_sig_{0}_{1:.0f} param 0.0 {2} \n".format(self.channel,self.sqrts,N_CB_errPerCent))
+            if theInputs['useCMS_zz4l_gamma']:
+                theFile.write("CMS_zz4l_gamma_sig_{0}_{1:.0f} param 0.0 {2} \n".format(self.channel,self.sqrts,Gamma_BW_errPerCent))
 
         if( self.channel == self.ID_4e):
 
@@ -653,6 +655,8 @@ class systematicsClass:
                 theFile.write("CMS_zz4l_sigma_e_sig param 0.0 {0} \n".format(sigmaCB_e_errPerCent))
             if theInputs['useCMS_zz4l_n']:
                 theFile.write("CMS_zz4l_n_sig_{0}_{1:.0f} param 0.0 {2} \n".format(self.channel,self.sqrts,N_CB_errPerCent))
+            if theInputs['useCMS_zz4l_gamma']:
+                theFile.write("CMS_zz4l_gamma_sig_{0}_{1:.0f} param 0.0 {2} \n".format(self.channel,self.sqrts,Gamma_BW_errPerCent))
             
         if( self.channel == self.ID_2e2mu):
 
@@ -664,9 +668,6 @@ class systematicsClass:
                 theFile.write("CMS_zz4l_sigma_e_sig param 0.0 {0} \n".format(sigmaCB_e_errPerCent))
             if theInputs['useCMS_zz4l_n']:
                 theFile.write("CMS_zz4l_n_sig_{0}_{1:.0f} param 0.0 {2} \n".format(self.channel,self.sqrts,N_CB_errPerCent))
-                                                
-
-
-
-
+            if theInputs['useCMS_zz4l_gamma']:
+                theFile.write("CMS_zz4l_gamma_sig_{0}_{1:.0f} param 0.0 {2} \n".format(self.channel,self.sqrts,Gamma_BW_errPerCent))
 
