@@ -81,8 +81,10 @@ void SuperMELA::computeKD(double m4l,double PSigMelaIn,double PBkgMelaIn,double 
   
   //
   MELA=double(melaTmp);
-  if(m4l<80 || m4l>180){
-    if(verbose_)    std::cout<<"WARNING from void SuperMELA::computeKD ! m4l outside range [80, 180]: "<<m4l<<" . Setting SuperMELA to dummy values."<<std::endl;
+
+
+  if(m4l<lowMH_ || m4l>highMH_){
+    if(verbose_)    std::cout<<"WARNING from void SuperMELA::computeKD ! m4l outside range ["<<lowMH_ <<", "<<highMH_<<"]: "<<m4l<<" . Setting SuperMELA to dummy values."<<std::endl;
     Psig =0.0;
     Pbkg =0.0;
     superMELA=-1.0;
@@ -146,8 +148,8 @@ void SuperMELA::computeKD(double m4l,bool use4vectors,double &superMELA,double &
 
 
   //
-  if(m4l<80 || m4l>180){
-    if(verbose_)    std::cout<<"WARNING from void SuperMELA::computeKD ! m4l outside range [80, 180]: "<<m4l<<" . Setting SuperMELA to dummy values."<<std::endl;
+  if(m4l<lowMH_ || m4l>highMH_){
+    if(verbose_)    std::cout<<"WARNING from void SuperMELA::computeKD ! m4l outside range ["<<lowMH_ <<", "<<highMH_<<"]: "<<m4l<<" . Setting SuperMELA to dummy values."<<std::endl;
     Psig =0.0;
     Pbkg =0.0;
     superMELA=-1.0;
@@ -189,8 +191,8 @@ void SuperMELA::computeKD(std::pair<double, double> m4lPair,double PSigMelaIn,do
   //
   MELA=double(melaTmp);
  
-  if( (m4lPair.first<80 || m4lPair.first>180) ||(m4lPair.second<80 || m4lPair.second>180)) {
-    if(verbose_)    std::cout<<"WARNING from void SuperMELA::computeKD ! m4l outside range [80, 180]: "<<m4lPair.first<<" - "<<m4lPair.second<<" . Setting SuperMELA to dummy values."<<std::endl;
+  if( (m4lPair.first<lowMH_  || m4lPair.first>highMH_) ||(m4lPair.second<lowMH_  || m4lPair.second>highMH_)) {
+    if(verbose_)    std::cout<<"WARNING from void SuperMELA::computeKD ! m4l outside range ["<<lowMH_ <<", "<<highMH_<<"]: "<<m4lPair.first<<" - "<<m4lPair.second<<" . Setting SuperMELA to dummy values."<<std::endl;
     Psig =0.0;
     Pbkg =0.0;
     superMELA=-1.0;
@@ -578,7 +580,7 @@ void SuperMELA::readBkgParsFromFile(std::vector<double> &apars ){
 void SuperMELA::calc_mZZ_range(const double mHVal,double &low_M,double &high_M){
   HiggsCSandWidth *myCSW = new HiggsCSandWidth();
   double widthHVal =  myCSW->HiggsWidth(1,mHVal);
-  if(verbose_)cout<<"Width="<<widthHVal<<endl;
+  //  if(verbose_)cout<<"Width="<<widthHVal<<endl;
   double windowVal = max( widthHVal, 1. );
   double lowside = 100.;
   if (mHVal >= 275){ lowside = 180.; }

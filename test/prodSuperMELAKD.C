@@ -28,12 +28,13 @@ void prodSuperMELAKD(){
   //.x loadMela.C
 
   string str_sqrts="8TeV";//"7TeV";//"8TeV"
-  const int nSamples=10;//10 for 8 TeV, 9 for 7TeV
-
   string chan[3]={"4mu","4e","2e2mu"};
+
+  const string genType="PRODFSR";//"PRODFSR" "JHU"
+  const int nSamples=10;//10 for 8 TeV, 9 for 7TeV
     string files[10]={"HZZ4lTree_ZZTo4mu","HZZ4lTree_H125","HZZ4lTree_ZZTo4tau","HZZ4lTree_ZZTo4e","HZZ4lTree_ZZTo2e2mu","HZZ4lTree_ZZTo2e2tau","HZZ4lTree_ZZTo2mu2tau","HZZ4lTree_ggZZ2l2l","HZZ4lTree_ggZZ4l","HZZ4lTree_H126"};
-    //string files[1]={"HZZ4lTree_jhuPseH125"};
-  //string files[2]={"HZZ4lTree_H125","HZZ4lTree_H126"};
+    // string files[1]={"HZZ4lTree_jhuPseH125"};
+
 
   TRandom3 *myR=new TRandom3(4887);
 
@@ -44,9 +45,10 @@ void prodSuperMELAKD(){
 
     string chanDir=chan[ich];
     if(chanDir=="2e2mu")chanDir="2mu2e";
-    string dirSqrtS=(str_sqrts=="7TeV"? "PRODFSR" : "PRODFSR_8TeV");
-    string dirName="root://lxcms02//data/Higgs/rootuplesOut/171012/"+dirSqrtS+"/"+chanDir+"/";
-    string outDirName="/afs/cern.ch/user/b/bonato/work/PhysAnalysis/HZZ4L/Trees_171012/PRODFSR_"+str_sqrts+"/"+chan[ich]+"/";
+
+    string dirSqrtS=(str_sqrts=="7TeV"? genType : genType+"_8TeV");
+    string dirName="root://lxcms02//data/Higgs/rootuplesOut/191012/"+dirSqrtS+"/"+chanDir+"/";
+    string outDirName="/afs/cern.ch/user/b/bonato/work/PhysAnalysis/HZZ4L/Trees_191012/"+genType+"_"+str_sqrts+"/"+chan[ich]+"/";
     for(int ifile=0;ifile<nSamples;ifile++){     
       // if(ifile!=1)continue;
 
@@ -129,7 +131,7 @@ void prodSuperMELAKD(){
  // mySMD->SetMH(126.0);
  mySMD->SetPathToCards("/afs/cern.ch/user/b/bonato/work/PhysAnalysis/HZZ4L/spin/SuperMELA/CMSSW_5_3_3_patch3/src/HiggsAnalysis/HZZ4L_CombinationPy/CreateDatacards/SM_inputs_"+str_sqrts+"/");
  // mySMD->RecalculateMELA(true);
- mySMD->SetVerbosity(true);
+ mySMD->SetVerbosity(false);
  mySMD->init();
 
 
