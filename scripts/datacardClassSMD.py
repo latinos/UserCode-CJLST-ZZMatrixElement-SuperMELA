@@ -400,7 +400,7 @@ class datacardClass:
 
         ## --------------------------- SuperMELA 2D PDFS ------------------------- ##
 
-        discVarName = "melaLD"
+        discVarName = "CMS_zz4l_KD"
         D = ROOT.RooRealVar(discVarName,discVarName,0,1)
     
         templateSigName = "{0}/Dsignal_{1}.root".format(self.templateDir ,self.appendName)
@@ -409,13 +409,19 @@ class datacardClass:
         sigTemplate = sigTempFile.Get("h_superDpsD")
         sigTemplate_syst1Up = sigTempFile.Get("h_superDpsD_LeptScaleUp")
         sigTemplate_syst1Down = sigTempFile.Get("h_superDpsD_LeptScaleDown")
-        
+        sigTemplate_syst2Up = sigTempFile.Get("h_superDpsD_LeptSmearUp")
+        sigTemplate_syst2Down = sigTempFile.Get("h_superDpsD_LeptSmearDown")
+            
         TemplateName = "sigTempDataHist_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         sigTempDataHist = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(SD,D),sigTemplate)
-        TemplateName = "sigTempDataHist_Up_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        TemplateName = "sigTempDataHist_syst1Up_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         sigTempDataHist_syst1Up = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(SD,D),sigTemplate_syst1Up)
-        TemplateName = "sigTempDataHist_Down_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        sigTempDataHist_syst1Down = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(SD,D),sigTemplate_syst1Down)
+        TemplateName = "sigTempDataHist_syst1Down_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        sigTempDataHist_syst1Down =ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(SD,D),sigTemplate_syst1Down)
+        TemplateName = "sigTempDataHist_syst2Up_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        sigTempDataHist_syst2Up = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(SD,D),sigTemplate_syst1Up)
+        TemplateName = "sigTempDataHist_syst2Down_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        sigTempDataHist_syst2Down =ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(SD,D),sigTemplate_syst1Down)
 
         TemplateName = "sigTemplatePdf_ggH_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         sigTemplatePdf_ggH = ROOT.RooHistPdf(TemplateName,TemplateName,ROOT.RooArgSet(SD,D),sigTempDataHist)
@@ -423,10 +429,11 @@ class datacardClass:
         sigTemplatePdf_ggH_syst1Up = ROOT.RooHistPdf(TemplateName,TemplateName,ROOT.RooArgSet(SD,D),sigTempDataHist_syst1Up)
         TemplateName = "sigTemplatePdf_ggH_syst1Down_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         sigTemplatePdf_ggH_syst1Down = ROOT.RooHistPdf(TemplateName,TemplateName,ROOT.RooArgSet(SD,D),sigTempDataHist_syst1Down)
-   
-        
-        funcList_ggH = ROOT.RooArgList()  
-        
+        TemplateName = "sigTemplatePdf_ggH_syst2Up_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        sigTemplatePdf_ggH_syst2Up = ROOT.RooHistPdf(TemplateName,TemplateName,ROOT.RooArgSet(SD,D),sigTempDataHist_syst2Up)
+        TemplateName = "sigTemplatePdf_ggH_syst2Down_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        sigTemplatePdf_ggH_syst2Down = ROOT.RooHistPdf(TemplateName,TemplateName,ROOT.RooArgSet(SD,D),sigTempDataHist_syst2Down)
+           
 
         if(self.isAltSig):
             #only ggH because if we do hypothesis testing we sum up over the channels in any case                                           
@@ -437,6 +444,8 @@ class datacardClass:
             #systematics                                                                                                                  
             sigTemplate_syst1Up = sigTempFile.Get("h_superDpsD_LeptScaleUp")
             sigTemplate_syst1Down = sigTempFile.Get("h_superDpsD_LeptScaleDown")
+            sigTemplate_syst2Up = sigTempFile.Get("h_superDpsD_LeptSmearUp")
+            sigTemplate_syst2Down = sigTempFile.Get("h_superDpsD_LeptSmearDown")
             
             TemplateName = "sigTempDataHist_{0:.0f}_{1:.0f}{2}".format(self.channel,self.sqrts, self.appendHypType)
             sigTempDataHist_ALT = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(SD,D),sigTemplate)
@@ -444,6 +453,10 @@ class datacardClass:
             sigTempDataHist_ALT_syst1Up = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(SD,D),sigTemplate_syst1Up)
             TemplateName = "sigTempDataHist_syst1Down_{0:.0f}_{1:.0f}{2}".format(self.channel,self.sqrts, self.appendHypType)
             sigTempDataHist_ALT_syst1Down = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(SD,D),sigTemplate_syst1Down)
+            TemplateName = "sigTempDataHist_syst2Up_{0:.0f}_{1:.0f}{2}".format(self.channel,self.sqrts, self.appendHypType)
+            sigTempDataHist_ALT_syst2Up = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(SD,D),sigTemplate_syst2Up)
+            TemplateName = "sigTempDataHist_syst2Down_{0:.0f}_{1:.0f}{2}".format(self.channel,self.sqrts, self.appendHypType)
+            sigTempDataHist_ALT_syst2Down = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(SD,D),sigTemplate_syst2Down)
             
             
             TemplateName = "sigTemplatePdf_ggH{2}_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts, self.appendHypType)
@@ -452,51 +465,83 @@ class datacardClass:
             sigTemplatePdf_ggH_ALT_syst1Up = ROOT.RooHistPdf(TemplateName,TemplateName,ROOT.RooArgSet(SD,D),sigTempDataHist_ALT_syst1Up)
             TemplateName = "sigTemplatePdf_ggH{2}_syst1Down_{0:.0f}_{1:.0f}{2}".format(self.channel,self.sqrts, self.appendHypType)
             sigTemplatePdf_ggH_ALT_syst1Down = ROOT.RooHistPdf(TemplateName,TemplateName,ROOT.RooArgSet(SD,D),sigTempDataHist_ALT_syst1Down)
-             
-             
-        funcList_ggH_ALT = ROOT.RooArgList() 
+            TemplateName = "sigTemplatePdf_ggH{2}_syst2Up_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts, self.appendHypType)
+            sigTemplatePdf_ggH_ALT_syst2Up = ROOT.RooHistPdf(TemplateName,TemplateName,ROOT.RooArgSet(SD,D),sigTempDataHist_ALT_syst2Up)
+            TemplateName = "sigTemplatePdf_ggH{2}_syst2Down_{0:.0f}_{1:.0f}{2}".format(self.channel,self.sqrts, self.appendHypType)
+            sigTemplatePdf_ggH_ALT_syst2Down = ROOT.RooHistPdf(TemplateName,TemplateName,ROOT.RooArgSet(SD,D),sigTempDataHist_ALT_syst2Down)
 
-        if(self.sigMorph):
+             
+            ###Shape systematics for signal
+        funcList1_ggH = ROOT.RooArgList()  
+        funcList1_ggH_ALT = ROOT.RooArgList()
+        funcList2_ggH = ROOT.RooArgList()  
+        funcList2_ggH_ALT = ROOT.RooArgList() 
+
+        if(self.sigMorph): #this switches on the inclusion of shape systematics
             
-            funcList_ggH.add(sigTemplatePdf_ggH)
-            funcList_ggH.add(sigTemplatePdf_ggH_Up)
-            funcList_ggH.add(sigTemplatePdf_ggH_Down)  
-         
+            funcList1_ggH.add(sigTemplatePdf_ggH)
+            funcList1_ggH.add(sigTemplatePdf_ggH_syst1Up)
+            funcList1_ggH.add(sigTemplatePdf_ggH_syst1Down)  
+
+            funcList2_ggH.add(sigTemplatePdf_ggH)
+            funcList2_ggH.add(sigTemplatePdf_ggH_syst2Up)
+            funcList2_ggH.add(sigTemplatePdf_ggH_syst2Down)  
+
             if(self.isAltSig):
-                funcList_ggH_ALT.add(sigTemplatePdf_ggH_ALT)
-                funcList_ggH_ALT.add(sigTemplatePdf_ggH_ALT_Up)
-                funcList_ggH_ALT.add(sigTemplatePdf_ggH_ALT_Down)
+                funcList1_ggH_ALT.add(sigTemplatePdf_ggH_ALT)
+                funcList1_ggH_ALT.add(sigTemplatePdf_ggH_ALT_syst1Up)
+                funcList1_ggH_ALT.add(sigTemplatePdf_ggH_ALT_syst1Down)
+                funcList2_ggH_ALT.add(sigTemplatePdf_ggH_ALT)
+                funcList2_ggH_ALT.add(sigTemplatePdf_ggH_ALT_syst2Up)
+                funcList2_ggH_ALT.add(sigTemplatePdf_ggH_ALT_syst2Down)
         else:
             
-            funcList_ggH.add(sigTemplatePdf_ggH)
+            funcList1_ggH.add(sigTemplatePdf_ggH)
+            funcList2_ggH.add(sigTemplatePdf_ggH)
             if(self.isAltSig):
-                funcList_ggH_ALT.add(sigTemplatePdf_ggH_ALT)
+                funcList1_ggH_ALT.add(sigTemplatePdf_ggH_ALT)
+                funcList2_ggH_ALT.add(sigTemplatePdf_ggH_ALT)
     
-        morphSigVarName = "CMS_zz4l_sigMELA_{0:.0f}".format(self.channel)
-        alphaMorphSig = ROOT.RooRealVar(morphSigVarName,morphSigVarName,0,-20,20)
-        if(self.sigMorph): alphaMorphSig.setConstant(False)
-        else: alphaMorphSig.setConstant(True)
+        morphSigVarName = "CMS_zz4l_smd_leptScale_sig_{0:.0f}".format(self.channel)
+        syst1MorphSig = ROOT.RooRealVar(morphSigVarName,morphSigVarName,0,-20,20)
+        morphSigVarName = "CMS_zz4l_smd_leptResol_sig_{0:.0f}".format(self.channel)
+        syst2MorphSig = ROOT.RooRealVar(morphSigVarName,morphSigVarName,0,-20,20)
+        if(self.sigMorph):
+            syst1MorphSig.setConstant(False)
+            syst2MorphSig.setConstant(False)
+        else:
+            syst1MorphSig.setConstant(True)
+            syst2MorphSig.setConstant(True)
         
-        morphVarListSig = ROOT.RooArgList()
+        morphVarListSig1 = ROOT.RooArgList()
+        morphVarListSig2 = ROOT.RooArgList()
     
-        if(self.sigMorph): morphVarListSig.add(alphaMorphSig)  ## just one morphing for all signal processes (fully correlated systematics)
-        
+        if(self.sigMorph):
+            morphVarListSig1.add(syst1MorphSig)  ## just one morphing for all signal processes (fully correlated systs)
+            morphVarListSig2.add(syst2MorphSig)
+            
         TemplateName = "sigTemplateMorphPdf_ggH_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        sigTemplateMorphPdf_ggH = ROOT.FastVerticalInterpHistPdf2D(TemplateName,TemplateName,SD,D,true,funcList_ggH,morphVarListSig,1.0,1)
+        sigTemplateMorphPdf_ggH = ROOT.FastVerticalInterpHistPdf2D(TemplateName,TemplateName,SD,D,false,funcList1_ggH,morphVarListSig1,1.0,1)
         
         if(self.isAltSig):
             TemplateName = "sigTemplateMorphPdf_ggH{2}_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts,self.appendHypType)
-            sigTemplateMorphPdf_ggH_ALT = ROOT.FastVerticalInterpHistPdf2D(TemplateName,TemplateName,SD,D,true,funcList_ggH_ALT,morphVarListSig,1.0,1)
+            sigTemplateMorphPdf_ggH_ALT = ROOT.FastVerticalInterpHistPdf2D(TemplateName,TemplateName,SD,D,false,funcList1_ggH_ALT,morphVarListSig1,1.0,1)
+
+
+
     
 
-        sig2d_ggH = ROOT.RooProdPdf("sig2d_ggH","sig2d_ggH",ROOT.RooArgSet(sig_ggH),ROOT.RooFit.Conditional(ROOT.RooArgSet(sigTemplateMorphPdf_ggH),ROOT.RooArgSet(D) ) )
-                
-        sigCB2d_ggH = ROOT.RooProdPdf("sigCB2d_ggH","sigCB2d_ggH",ROOT.RooArgSet(signalCB_ggH),ROOT.RooFit.Conditional(ROOT.RooArgSet(sigTemplateMorphPdf_ggH),ROOT.RooArgSet(D) ))
+###        sig2d_ggH = ROOT.RooProdPdf("sig2d_ggH","sig2d_ggH",ROOT.RooArgSet(sig_ggH),ROOT.RooFit.Conditional(ROOT.RooArgSet(sigTemplateMorphPdf_ggH),ROOT.RooArgSet(D) ) )               
+###        sigCB2d_ggH = ROOT.RooProdPdf("sigCB2d_ggH","sigCB2d_ggH",ROOT.RooArgSet(signalCB_ggH),ROOT.RooFit.Conditional(ROOT.RooArgSet(sigTemplateMorphPdf_ggH),ROOT.RooArgSet(D) ))
+        sig2d_ggH =sig_ggH.Clone("sig2d_ggH") #not used, anyway
+        sigCB2d_ggH =signalCB_ggH.Clone("sigCB2d_ggH")
 
-        
+            
         if(self.isAltSig):
-            sig2d_ggH_ALT = ROOT.RooProdPdf("sig2d_ggH{0}".format(self.appendHypType),"sig2d_ggH{0}".format(self.appendHypType),ROOT.RooArgSet(sig_ggH),ROOT.RooFit.Conditional(ROOT.RooArgSet(sigTemplateMorphPdf_ggH_ALT),ROOT.RooArgSet(D) ))
-            sigCB2d_ggH_ALT = ROOT.RooProdPdf("sigCB2d_ggH{0}".format(self.appendHypType),"sigCB2d_ggH{0}".format(self.appendHypType),ROOT.RooArgSet(signalCB_ggH),ROOT.RooFit.Conditional(ROOT.RooArgSet(sigTemplateMorphPdf_ggH_ALT),ROOT.RooArgSet(D) ))            
+###            sig2d_ggH_ALT = ROOT.RooProdPdf("sig2d_ggH{0}".format(self.appendHypType),"sig2d_ggH{0}".format(self.appendHypType),ROOT.RooArgSet(sig_ggH),ROOT.RooFit.Conditional(ROOT.RooArgSet(sigTemplateMorphPdf_ggH_ALT),ROOT.RooArgSet(D) ))
+###            sigCB2d_ggH_ALT = ROOT.RooProdPdf("sigCB2d_ggH{0}".format(self.appendHypType),"sigCB2d_ggH{0}".format(self.appendHypType),ROOT.RooArgSet(signalCB_ggH),ROOT.RooFit.Conditional(ROOT.RooArgSet(sigTemplateMorphPdf_ggH_ALT),ROOT.RooArgSet(D) ))            
+            sig2d_ggH_ALT =sig_ggH.Clone("sig2d_ggH{0}".format(self.appendHypType)) #not used, anyway
+            sigCB2d_ggH_ALT =signalCB_ggH.Clone("sigCB2d_ggH{0}".format(self.appendHypType))
 
 
 
@@ -685,15 +730,11 @@ class datacardClass:
         templateBkgName = "{0}/Dbackground_qqZZ_{1}.root".format(self.templateDir ,self.appendName)
         bkgTempFile = ROOT.TFile(templateBkgName)
         bkgTemplate = bkgTempFile.Get("h_superDpsD")
-        bkgTemplate_Up = bkgTempFile.Get("h_superDpsD_LeptScaleUp")
-        bkgTemplate_Down = bkgTempFile.Get("h_superDpsD_LeptScaleDown")
         
         TemplateName = "bkgTempDataHist_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         bkgTempDataHist = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(SD,D),bkgTemplate)
-        TemplateName = "bkgTempDataHist_Up_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        bkgTempDataHist_Up = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(SD,D),bkgTemplate_Up)
-        TemplateName = "bkgTempDataHist_Down_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        bkgTempDataHist_Down = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(SD,D),bkgTemplate_Down)
+        TemplateName = "zjetsTempDataHist_Up_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        bkgTempDataHist_zjetsUp = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(SD,D),bkgTemplate)
 
         templateggBkgName = "{0}/Dbackground_ggZZ_{1}.root".format(self.templateDir ,self.appendName)
         ggbkgTempFile = ROOT.TFile(templateggBkgName)
@@ -705,16 +746,25 @@ class datacardClass:
         bkgTemplatePdf_qqzz = ROOT.RooHistPdf(TemplateName,TemplateName,ROOT.RooArgSet(SD,D),bkgTempDataHist)
         TemplateName = "bkgTemplatePdf_ggzz_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         bkgTemplatePdf_ggzz = ROOT.RooHistPdf(TemplateName,TemplateName,ROOT.RooArgSet(SD,D),ggbkgTempDataHist)
+
+
+        templateBkgName = "{0}/Dbackground_ZJetsCR_AllChans.root".format(self.templateDir)
+        zjetsTempFile = ROOT.TFile(templateBkgName)
+        zjetsTemplate = zjetsTempFile.Get("h_superDpsD")
+        TemplateName = "zjetsTempDataHist_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        zjetsTempDataHist = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(SD,D),zjetsTemplate)
+
+
         TemplateName = "bkgTemplatePdf_zjets_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        bkgTemplatePdf_zjets = ROOT.RooHistPdf(TemplateName,TemplateName,ROOT.RooArgSet(SD,D),bkgTempDataHist)
+        bkgTemplatePdf_zjets = ROOT.RooHistPdf(TemplateName,TemplateName,ROOT.RooArgSet(SD,D),zjetsTempDataHist)
         TemplateName = "bkgTemplatePdf_zjets_Up_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        bkgTemplatePdf_zjets_Up = ROOT.RooHistPdf(TemplateName,TemplateName,ROOT.RooArgSet(SD,D),bkgTempDataHist_Up)
+        bkgTemplatePdf_zjets_Up = ROOT.RooHistPdf(TemplateName,TemplateName,ROOT.RooArgSet(SD,D),bkgTempDataHist_zjetsUp)
         TemplateName = "bkgTemplatePdf_zjets_Down_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        bkgTemplatePdf_zjets_Down = ROOT.RooHistPdf(TemplateName,TemplateName,ROOT.RooArgSet(SD,D),bkgTempDataHist_Down)
+        bkgTemplatePdf_zjets_Down = ROOT.RooHistPdf(TemplateName,TemplateName,ROOT.RooArgSet(SD,D),zjetsTempDataHist)
 
         
         funcList_zjets = ROOT.RooArgList()  
-        morphBkgVarName = "CMS_zz4l_bkgMELA"    
+        morphBkgVarName =  "CMS_zz4l_smd_zjets_bkg_{0:.0f}".format(self.channel)    
         alphaMorphBkg = ROOT.RooRealVar(morphBkgVarName,morphBkgVarName,0,-20,20)
         morphVarListBkg = ROOT.RooArgList()
         
@@ -733,12 +783,18 @@ class datacardClass:
         bkgTemplateMorphPdf_qqzz = ROOT.FastVerticalInterpHistPdf2D(TemplateName,TemplateName,SD,D,true,ROOT.RooArgList(bkgTemplatePdf_qqzz),ROOT.RooArgList(),1.0,1)
         TemplateName = "bkgTemplateMorphPdf_ggzz_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)    
         bkgTemplateMorphPdf_ggzz = ROOT.FastVerticalInterpHistPdf2D(TemplateName,TemplateName,SD,D,true,ROOT.RooArgList(bkgTemplatePdf_ggzz),ROOT.RooArgList(),1.0,1)
-        TemplateName = "bkgTemplateMorphPdf_zjets_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)    
-        bkgTemplateMorphPdf_zjets = ROOT.FastVerticalInterpHistPdf2D(TemplateName,TemplateName,SD,D,true,funcList_zjets,morphVarListBkg,1.0,1)
 
-        bkg2d_qqzz = ROOT.RooProdPdf("bkg2d_qqzz","bkg2d_qqzz",ROOT.RooArgSet(bkg_qqzz),ROOT.RooFit.Conditional(ROOT.RooArgSet(bkgTemplateMorphPdf_qqzz),ROOT.RooArgSet(D)))
-        bkg2d_ggzz = ROOT.RooProdPdf("bkg2d_ggzz","bkg2d_ggzz",ROOT.RooArgSet(bkg_ggzz),ROOT.RooFit.Conditional(ROOT.RooArgSet(bkgTemplateMorphPdf_ggzz),ROOT.RooArgSet(D)))
-        bkg2d_zjets = ROOT.RooProdPdf("bkg2d_zjets","bkg2d_zjets",ROOT.RooArgSet(bkg_zjets),ROOT.RooFit.Conditional(ROOT.RooArgSet(bkgTemplateMorphPdf_zjets),ROOT.RooArgSet(D)))
+        print 'MORPHING the ZJETS BKG'
+        TemplateName = "bkgTemplateMorphPdf_zjets_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)    
+        bkgTemplateMorphPdf_zjets = ROOT.FastVerticalInterpHistPdf2D(TemplateName,TemplateName,SD,D,false,funcList_zjets,morphVarListBkg,1.0,1)
+
+        print 'dummy cloning'
+        bkg2d_qqzz =bkg_qqzz.Clone("bkg2d_qqzz")
+        bkg2d_ggzz =bkg_ggzz.Clone("bkg2d_ggzz")
+        bkg2d_zjets =bkg_zjets.Clone("bkg2d_zjets")
+###        bkg2d_qqzz = ROOT.RooProdPdf("bkg2d_qqzz","bkg2d_qqzz",ROOT.RooArgSet(bkg_qqzz),ROOT.RooFit.Conditional(ROOT.RooArgSet(bkgTemplateMorphPdf_qqzz),ROOT.RooArgSet(D)))
+###        bkg2d_ggzz = ROOT.RooProdPdf("bkg2d_ggzz","bkg2d_ggzz",ROOT.RooArgSet(bkg_ggzz),ROOT.RooFit.Conditional(ROOT.RooArgSet(bkgTemplateMorphPdf_ggzz),ROOT.RooArgSet(D)))
+###        bkg2d_zjets = ROOT.RooProdPdf("bkg2d_zjets","bkg2d_zjets",ROOT.RooArgSet(bkg_zjets),ROOT.RooFit.Conditional(ROOT.RooArgSet(bkgTemplateMorphPdf_zjets),ROOT.RooArgSet(D)))
 
         ## ----------------- SUPERMELA 1D BACKGROUND SHAPES --------------- ##
         
@@ -958,7 +1014,7 @@ class datacardClass:
         ## --------------------------- DATASET --------------------------- ##
 
         dataFileDir = "CMSdata"
-        dataTreeName = "data_obs" 
+        dataTreeName = "SelectedTree" ### "data_obs" 
         dataFileName = "{0}/hzz{1}_{2}.root".format(dataFileDir,self.appendName,self.lumi)
         if (DEBUG): print dataFileName," ",dataTreeName 
         data_obs_file = ROOT.TFile(dataFileName)
@@ -1069,29 +1125,48 @@ class datacardClass:
                 sigCB2d_ggH.SetNameTitle("ORIGggH","ORIGggH")
                
                 getattr(w,'import')(sigCB2d_ggH, ROOT.RooFit.RecycleConflictNodes())
-               
-                sigTemplatePdf_ggH.SetNameTitle("ggH","ggH")
-                getattr(w,'import')(sigTemplatePdf_ggH, ROOT.RooFit.RecycleConflictNodes())
-                systTempName=("ggHCMS_zz4l_leptScale_sig_{0}_{1:.0f}_Up").format(self.channel,self.sqrts)
-                sigTemplatePdf_ggH_syst1Up.SetNameTitle(systTempName,systTempName)
-                systTempName=("ggHCMS_zz4l_leptScale_sig_{0}_{1:.0f}_Down").format(self.channel,self.sqrts)
-                sigTemplatePdf_ggH_syst1Down.SetNameTitle(systTempName,systTempName)
-   
 
-
-                
-                if(self.isAltSig):
-                    sigCB2d_ggH_ALT.SetNameTitle("ORIGggH{0}".format(self.appendHypType),"ggH{0}".format(self.appendHypType))
-                    getattr(w,'import')(sigCB2d_ggH_ALT, ROOT.RooFit.RecycleConflictNodes())
-                    sigTemplatePdf_ggH_ALT.SetNameTitle("ggH{0}".format(self.appendHypType),"ggH{0}".format(self.appendHypType))
-                    getattr(w,'import')(sigTemplatePdf_ggH_ALT, ROOT.RooFit.RecycleConflictNodes())
-                #systematics for ALT signal
-                    systTempName=("ggH{0}CMS_zz4l_leptScale_sig_{1}_{2:.0f}_Up").format(self.appendHypType,self.channel,self.sqrts)
+                if(self.sigMorph): #this switches on the inclusion of shape systematics
+                  #  sigTemplatePdf_ggH.SetNameTitle("ggH","ggH")
+                    sigTemplateMorphPdf_ggH.SetNameTitle("ggH","ggH")
+                    getattr(w,'import')(sigTemplatePdf_ggH, ROOT.RooFit.RecycleConflictNodes())
+                    getattr(w,'import')(sigTemplateMorphPdf_ggH, ROOT.RooFit.RecycleConflictNodes())
+                    #save syst templates individually
+                    systTempName=("ggHCMS_zz4l_leptScale_sig_{0}_{1:.0f}_Up").format(self.channel,self.sqrts)
                     sigTemplatePdf_ggH_syst1Up.SetNameTitle(systTempName,systTempName)
-                    systTempName=("ggH{0}CMS_zz4l_leptScale_sig_{1}_{2:.0f}_Down").format(self.appendHypType,self.channel,self.sqrts)
+                    systTempName=("ggHCMS_zz4l_leptScale_sig_{0}_{1:.0f}_Down").format(self.channel,self.sqrts)
                     sigTemplatePdf_ggH_syst1Down.SetNameTitle(systTempName,systTempName)
-                    getattr(w,'import')(sigTemplatePdf_ggH_syst1Up, ROOT.RooFit.RecycleConflictNodes())
-                    getattr(w,'import')(sigTemplatePdf_ggH_syst1Down, ROOT.RooFit.RecycleConflictNodes())
+                    
+                    if(self.isAltSig):   
+                        sigCB2d_ggH_ALT.SetNameTitle("ORIGggH{0}".format(self.appendHypType),"ggH{0}".format(self.appendHypType))
+                 #       sigTemplatePdf_ggH_ALT.SetNameTitle("ggH{0}".format(self.appendHypType),"ggH{0}".format(self.appendHypType))
+                        sigTemplateMorphPdf_ggH_ALT.SetNameTitle("ggH{0}".format(self.appendHypType),"ggH{0}".format(self.appendHypType))
+                        getattr(w,'import')(sigCB2d_ggH_ALT, ROOT.RooFit.RecycleConflictNodes())
+
+                        getattr(w,'import')(sigTemplatePdf_ggH_ALT, ROOT.RooFit.RecycleConflictNodes())
+                        getattr(w,'import')(sigTemplateMorphPdf_ggH_ALT, ROOT.RooFit.RecycleConflictNodes())
+                        
+                else: ### standard case, no signal syst shapes
+                    sigTemplatePdf_ggH.SetNameTitle("ggH","ggH")
+                    getattr(w,'import')(sigTemplatePdf_ggH, ROOT.RooFit.RecycleConflictNodes())
+                    systTempName=("ggHCMS_zz4l_leptScale_sig_{0}_{1:.0f}_Up").format(self.channel,self.sqrts)
+                    sigTemplatePdf_ggH_syst1Up.SetNameTitle(systTempName,systTempName)
+                    systTempName=("ggHCMS_zz4l_leptScale_sig_{0}_{1:.0f}_Down").format(self.channel,self.sqrts)
+                    sigTemplatePdf_ggH_syst1Down.SetNameTitle(systTempName,systTempName)
+                
+                    if(self.isAltSig):   
+                        sigCB2d_ggH_ALT.SetNameTitle("ORIGggH{0}".format(self.appendHypType),"ggH{0}".format(self.appendHypType))
+                        sigTemplatePdf_ggH_ALT.SetNameTitle("ggH{0}".format(self.appendHypType),"ggH{0}".format(self.appendHypType))
+                        getattr(w,'import')(sigCB2d_ggH_ALT, ROOT.RooFit.RecycleConflictNodes())
+
+                        getattr(w,'import')(sigTemplatePdf_ggH_ALT, ROOT.RooFit.RecycleConflictNodes())
+                        ###systematics for ALT signal
+                        systTempName=("ggH{0}CMS_zz4l_leptScale_sig_{1}_{2:.0f}_Up").format(self.appendHypType,self.channel,self.sqrts)
+                        sigTemplatePdf_ggH_syst1Up.SetNameTitle(systTempName,systTempName)
+                        systTempName=("ggH{0}CMS_zz4l_leptScale_sig_{1}_{2:.0f}_Down").format(self.appendHypType,self.channel,self.sqrts)
+                        sigTemplatePdf_ggH_syst1Down.SetNameTitle(systTempName,systTempName)
+                        getattr(w,'import')(sigTemplatePdf_ggH_syst1Up, ROOT.RooFit.RecycleConflictNodes())
+                        getattr(w,'import')(sigTemplatePdf_ggH_syst1Down, ROOT.RooFit.RecycleConflictNodes())
   
 ####################################      
 #####################################
@@ -1199,11 +1274,17 @@ class datacardClass:
 
             bkgTemplatePdf_qqzz.SetNameTitle("bkg2d_qqzz","bkg2d_qqzz")
             bkgTemplatePdf_ggzz.SetNameTitle("bkg2d_ggzz","bkg2d_ggzz")
-            bkgTemplatePdf_zjets.SetNameTitle("bkg2d_zjets","bkg2d_zjets")
+            if(self.bkgMorph):
+                bkgTemplateMorphPdf_zjets.SetNameTitle("bkg2d_zjets","bkg2d_zjets")
+            else:
+                bkgTemplatePdf_zjets.SetNameTitle("bkg2d_zjets","bkg2d_zjets")
             getattr(w,'import')(bkgTemplatePdf_qqzz,ROOT.RooFit.RecycleConflictNodes())
             getattr(w,'import')(bkgTemplatePdf_ggzz,ROOT.RooFit.RecycleConflictNodes())
             getattr(w,'import')(bkgTemplatePdf_zjets,ROOT.RooFit.RecycleConflictNodes())
-
+            if(self.bkgMorph):
+                getattr(w,'import')(bkgTemplateMorphPdf_zjets,ROOT.RooFit.RecycleConflictNodes())
+            print 'finished to save bkg 2D pdfs in the WS'
+#################
         if (self.is2D == 2): 
             bkgTemplateSDPdf_qqzz.SetNameTitle("bkg_qqzz","bkg_qqzz")
             bkgTemplateSDPdf_ggzz.SetNameTitle("bkg_ggzz","bkg_ggzz")
