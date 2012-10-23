@@ -3,8 +3,8 @@ Required packages and installation:
 
 cvs co -A HiggsAnalysis/CombinedLimit
 cvs co -r V00-01-05 -d ZZMatrixElement/MELA  UserCode/CJLST/ZZMatrixElement/MELA/
-cvs co -r bonato_supermela_20121021_doubleCB -d ZZMatrixElement/SuperMELA  UserCode/CJLST/ZZMatrixElement/SuperMELA/
-cvs co -r bonato_supermela_20121021 -d HiggsAnalysis/HZZ4L_CombinationPy/ UserCode/HZZ4L_Combination/CombinationPy
+cvs co -r bonato_supermela_20121023 -d ZZMatrixElement/SuperMELA  UserCode/CJLST/ZZMatrixElement/SuperMELA/
+cvs co -r bonato_supermela_20121023 -d HiggsAnalysis/HZZ4L_CombinationPy/ UserCode/HZZ4L_Combination/CombinationPy
 
 scram b -j7 #it will take >20 minutes
 
