@@ -549,7 +549,9 @@ class datacardClass:
     
         templateSDSigName = "{0}/Dsignal_{1}.root".format(self.templateDir ,self.appendName)
         sigTempSDFile = ROOT.TFile(templateSDSigName)
-        sigTemplateSD = sigTempSDFile.Get("h_superD") 
+        sigTemplateSD = sigTempSDFile.Get("h_superD")
+###        sigTemplateSD = sigTempSDFile.Get("h_superD_mod_rndm")
+###        sigTemplateSD = sigTempSDFile.Get("h_superDfromProjX") 
         print 'SuperMELA 1D template has mean = ',sigTemplateSD.GetMean()
         
         TemplateSDName = "sigTempSDDataHist_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
@@ -755,8 +757,10 @@ class datacardClass:
         zjetsTempDataHist = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(SD,D),zjetsTemplate)
 
 
+
         TemplateName = "bkgTemplatePdf_zjets_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        bkgTemplatePdf_zjets = ROOT.RooHistPdf(TemplateName,TemplateName,ROOT.RooArgSet(SD,D),zjetsTempDataHist)
+        bkgTemplatePdf_zjets = ROOT.RooHistPdf(TemplateName,TemplateName,ROOT.RooArgSet(SD,D),bkgTempDataHist)
+#        bkgTemplatePdf_zjets = ROOT.RooHistPdf(TemplateName,TemplateName,ROOT.RooArgSet(SD,D),zjetsTempDataHist)
         TemplateName = "bkgTemplatePdf_zjets_Up_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         bkgTemplatePdf_zjets_Up = ROOT.RooHistPdf(TemplateName,TemplateName,ROOT.RooArgSet(SD,D),bkgTempDataHist_zjetsUp)
         TemplateName = "bkgTemplatePdf_zjets_Down_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
@@ -800,8 +804,9 @@ class datacardClass:
         
         templateSDBkgName = "{0}/Dbackground_qqZZ_{1}.root".format(self.templateDir ,self.appendName) 
         bkgTempSDFile = ROOT.TFile(templateSDBkgName)
-        bkgTemplateSD = bkgTempSDFile.Get("h_superD") 
-        
+       bkgTemplateSD = bkgTempSDFile.Get("h_superD")
+###        bkgTemplateSD = bkgTempSDFile.Get("h_superD_mod_rndm") 
+###        bkgTemplateSD = bkgTempSDFile.Get("h_superDfromProjX") 
         TemplateSDName = "bkgTempSDDataHist_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)    
         bkgTempSDDataHist = ROOT.RooDataHist(TemplateSDName,TemplateSDName,ROOT.RooArgList(SD),bkgTemplateSD)
         
@@ -945,6 +950,13 @@ class datacardClass:
         integral_ttH = 0.0
 
         integral_ggH = self.getVariable(signalCB_ggH.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass), ROOT.RooFit.Range("shape") ).getVal(),sig_ggH.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass), ROOT.RooFit.Range("shape") ).getVal(),self.bUseCBnoConvolution)
+        ####same signal shape for all chans
+        integral_VBF = self.getVariable(signalCB_ggH.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass), ROOT.RooFit.Range("shape") ).getVal(),sig_ggH.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass), ROOT.RooFit.Range("shape") ).getVal(),self.bUseCBnoConvolution)
+        integral_WH = self.getVariable(signalCB_ggH.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass), ROOT.RooFit.Range("shape") ).getVal(),sig_ggH.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass), ROOT.RooFit.Range("shape") ).getVal(),self.bUseCBnoConvolution)
+        integral_ZH = self.getVariable(signalCB_ggH.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass), ROOT.RooFit.Range("shape") ).getVal(),sig_ggH.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass), ROOT.RooFit.Range("shape") ).getVal(),self.bUseCBnoConvolution)
+        integral_ttH = self.getVariable(signalCB_ggH.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass), ROOT.RooFit.Range("shape") ).getVal(),sig_ggH.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass), ROOT.RooFit.Range("shape") ).getVal(),self.bUseCBnoConvolution)
+        
+        integral_ggH = self.getVariable(signalCB_ggH.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass), ROOT.RooFit.Range("shape") ).getVal(),sig_ggH.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass), ROOT.RooFit.Range("shape") ).getVal(),self.bUseCBnoConvolution)
         
         sigRate_ggH_Shape = sclFactorSig_ggH*integral_ggH
         
@@ -962,6 +974,22 @@ class datacardClass:
 
         print "Compare integrals: integral_ggH=",integral_ggH,"  ; calculated=",self.getVariable(signalCB_ggH.createIntegral(RooArgSet(CMS_zz4l_mass),ROOT.RooFit.Range("shape")).getVal(),sig_ggH.createIntegral(RooArgSet(CMS_zz4l_mass),ROOT.RooFit.Range("shape")).getVal(),self.bUseCBnoConvolution)
         
+
+        rfvSigRate_ggH = ROOT.RooFormulaVar("ggH_norm","@0*@1*@2*1000*{0}*{2}/{1}".format(self.lumi,rrvNormSig.getVal(),integral_ggH),ROOT.RooArgList(rfvCsFilter,rfvSigEff, rhfXsBrFuncV_1))
+
+        print "Compare integrals: integral_ggH=",integral_ggH,"  ; calculated=",self.getVariable(signalCB_ggH.createIntegral(RooArgSet(CMS_zz4l_mass),ROOT.RooFit.Range("shape")).getVal(),sig_ggH.createIntegral(RooArgSet(CMS_zz4l_mass),ROOT.RooFit.Range("shape")).getVal(),self.bUseCBnoConvolution)
+        
+        rfvSigRate_VBF = ROOT.RooFormulaVar("qqH_norm","@0*@1*@2*1000*{0}*{2}/{1}".format(self.lumi,rrvNormSig.getVal(),integral_VBF),ROOT.RooArgList(rfvCsFilter,rfvSigEff, rhfXsBrFuncV_2))
+                         
+
+        rfvSigRate_WH = ROOT.RooFormulaVar("WH_norm","@0*@1*@2*1000*{0}*{2}/{1}".format(self.lumi,rrvNormSig.getVal(),integral_WH),ROOT.RooArgList(rfvCsFilter,rfvSigEff, rhfXsBrFuncV_3))
+                         
+
+        rfvSigRate_ZH = ROOT.RooFormulaVar("ZH_norm","@0*@1*@2*1000*{0}*{2}/{1}".format(self.lumi,rrvNormSig.getVal(),integral_ZH),ROOT.RooArgList(rfvCsFilter,rfvSigEff, rhfXsBrFuncV_4))
+                         
+
+        rfvSigRate_ttH = ROOT.RooFormulaVar("ttH_norm","@0*@1*@2*1000*{0}*{2}/{1}".format(self.lumi,rrvNormSig.getVal(),integral_ttH),ROOT.RooArgList(rfvCsFilter,rfvSigEff, rhfXsBrFuncV_5))
+
 
         print signalCB_ggH.createIntegral(ROOT.RooArgSet(CMS_zz4l_mass)).getVal(),"   ",sig_ggH.createIntegral(ROOT.RooArgSet(CMS_zz4l_mass)).getVal()
         print signalCB_ggH.createIntegral(ROOT.RooArgSet(CMS_zz4l_mass),ROOT.RooFit.Range("shape")).getVal(),"   ",sig_ggH.createIntegral(ROOT.RooArgSet(CMS_zz4l_mass),ROOT.RooFit.Range("shape")).getVal()
@@ -1293,9 +1321,13 @@ class datacardClass:
             getattr(w,'import')(bkgTemplateSDPdf_qqzz, ROOT.RooFit.RecycleConflictNodes())
             getattr(w,'import')(bkgTemplateSDPdf_zjets, ROOT.RooFit.RecycleConflictNodes())
 
-        
+### save signal rates        
         getattr(w,'import')(rfvSigRate_ggH, ROOT.RooFit.RecycleConflictNodes())
-     
+        getattr(w,'import')(rfvSigRate_VBF, ROOT.RooFit.RecycleConflictNodes())
+        getattr(w,'import')(rfvSigRate_WH, ROOT.RooFit.RecycleConflictNodes())
+        getattr(w,'import')(rfvSigRate_ZH, ROOT.RooFit.RecycleConflictNodes())
+        getattr(w,'import')(rfvSigRate_ttH, ROOT.RooFit.RecycleConflictNodes())
+        
         if(self.isAltSig):
             rfvSigRate_ggH_ALT=ROOT.RooFormulaVar(rfvSigRate_ggH,"ggH{0}_norm".format(self.appendHypType))
             print 'Compare signal rates: STD=',rfvSigRate_ggH.getVal(),"   ALT=",rfvSigRate_ggH_ALT.getVal()
@@ -1400,11 +1432,13 @@ class datacardClass:
 
         if theInputs["all"]:
            channelList=['ggH','qqZZ','ggZZ','zjets','ttbar','zbb']
+           channelName1D=['ggH','bkg_qqzz','bkg_ggzz','bkg_zjets','bkg_ttbar','bkg_zbb']
            channelName2D=['ggH','bkg2d_qqzz','bkg2d_ggzz','bkg2d_zjets','bkg2d_ttbar','bkg2d_zbb']
 
            if isAltCard :
                print 'THIS IS AN ALTERNATIVE CARD !!!!'
                channelList=['ggH','ggH','qqZZ','ggZZ','zjets','ttbar','zbb']
+               channelName1D=['ggH','ggH{0}'.format(AltLabel),'bkg_qqzz','bkg_ggzz','bkg_zjets','bkg_ttbar','bkg_zbb']
                channelName2D=['ggH','ggH{0}'.format(AltLabel),'bkg2d_qqzz','bkg2d_ggzz','bkg2d_zjets','bkg2d_ttbar','bkg2d_zbb']
          
         for chan in channelList:
@@ -1418,11 +1452,16 @@ class datacardClass:
         file.write("process ")
 
         i=0
-        if not self.is2D:
+        if not self.is2D==1 :
             for chan in channelList:
                 if theInputs[chan]:
                     file.write("{0} ".format(channelName1D[i]))
-                i+=1
+                    i+=1
+                else:
+                    if chan.startswith("ggH") and theInputs["all"] :
+                        file.write("{0} ".format(channelName2D[i]))
+#                        print 'writing in card TOTAL SUM, index=',i,'  chan=',chan,'  ',channelName2D[i]
+                        i+=1
         else:
             for chan in channelList:
 #                print 'checking if ',chan,' is in the list of to-do'
