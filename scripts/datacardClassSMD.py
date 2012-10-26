@@ -484,6 +484,8 @@ class datacardClass:
             funcList1_ggH.add(sigTemplatePdf_ggH_syst1Down)  
 
             funcList2_ggH.add(sigTemplatePdf_ggH)
+###            funcList2_ggH.add(sigTemplatePdf_ggH_syst2Up)
+###            funcList2_ggH.add(sigTemplatePdf_ggH_syst2Down)
             funcList2_ggH.add(sigTemplatePdf_ggH_syst2Up)
             funcList2_ggH.add(sigTemplatePdf_ggH_syst2Down)  
 
@@ -492,6 +494,8 @@ class datacardClass:
                 funcList1_ggH_ALT.add(sigTemplatePdf_ggH_ALT_syst1Up)
                 funcList1_ggH_ALT.add(sigTemplatePdf_ggH_ALT_syst1Down)
                 funcList2_ggH_ALT.add(sigTemplatePdf_ggH_ALT)
+###                funcList2_ggH_ALT.add(sigTemplatePdf_ggH_ALT_syst2Up)
+###                funcList2_ggH_ALT.add(sigTemplatePdf_ggH_ALT_syst2Down)
                 funcList2_ggH_ALT.add(sigTemplatePdf_ggH_ALT_syst2Up)
                 funcList2_ggH_ALT.add(sigTemplatePdf_ggH_ALT_syst2Down)
         else:
@@ -518,6 +522,7 @@ class datacardClass:
     
         if(self.sigMorph):
             morphVarListSig1.add(syst1MorphSig)  ## just one morphing for all signal processes (fully correlated systs)
+###            morphVarListSig2.add(syst2MorphSig)
             morphVarListSig2.add(syst2MorphSig)
             
         TemplateName = "sigTemplateMorphPdf_ggH_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
@@ -804,7 +809,7 @@ class datacardClass:
         
         templateSDBkgName = "{0}/Dbackground_qqZZ_{1}.root".format(self.templateDir ,self.appendName) 
         bkgTempSDFile = ROOT.TFile(templateSDBkgName)
-       bkgTemplateSD = bkgTempSDFile.Get("h_superD")
+        bkgTemplateSD = bkgTempSDFile.Get("h_superD")
 ###        bkgTemplateSD = bkgTempSDFile.Get("h_superD_mod_rndm") 
 ###        bkgTemplateSD = bkgTempSDFile.Get("h_superDfromProjX") 
         TemplateSDName = "bkgTempSDDataHist_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)    
