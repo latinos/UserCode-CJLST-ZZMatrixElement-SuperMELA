@@ -1070,7 +1070,7 @@ class datacardClass:
 		
         if (self.is2D == 1):
 ###            data_obs = ROOT.RooDataSet(datasetName,datasetName,data_obs_tree,ROOT.RooArgSet(SD,D))
-            data_obs = ROOT.RooDataSet(datasetName,datasetName,data_obs_tree,ROOT.RooArgSet(CMS_zz4l_mass,SD,D),'CMS_zz4l_mass>105.0&&CMS_zz4l_mass<140.0') ###.reduce(ROOT.RooArgSet(SD,D))
+            data_obs = ROOT.RooDataSet(datasetName,datasetName,data_obs_tree,ROOT.RooArgSet(CMS_zz4l_mass,SD,D),'CMS_zz4l_mass>105.0&&CMS_zz4l_mass<140.0').reduce(ROOT.RooArgSet(SD,D))
 
         if (self.is2D == 2):
             data_obs = ROOT.RooDataSet(datasetName,datasetName,data_obs_tree,ROOT.RooArgSet(SD))
