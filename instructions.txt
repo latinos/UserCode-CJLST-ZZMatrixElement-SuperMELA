@@ -3,8 +3,8 @@ Required packages and installation:
 
 cvs co -A HiggsAnalysis/CombinedLimit
 cvs co -r V00-01-05 -d ZZMatrixElement/MELA  UserCode/CJLST/ZZMatrixElement/MELA/
-cvs co -r bonato_supermela_20121023 -d ZZMatrixElement/SuperMELA  UserCode/CJLST/ZZMatrixElement/SuperMELA/
-cvs co -r bonato_supermela_20121023 -d HiggsAnalysis/HZZ4L_CombinationPy/ UserCode/HZZ4L_Combination/CombinationPy
+cvs co -r bonato_supermela_20121101 -d ZZMatrixElement/SuperMELA  UserCode/CJLST/ZZMatrixElement/SuperMELA/
+cvs co -r bonato_supermela_20121101 -d HiggsAnalysis/HZZ4L_CombinationPy/ UserCode/HZZ4L_Combination/CombinationPy
 
 scram b -j7 #it will take >20 minutes
 
@@ -37,18 +37,21 @@ class that calculates the theoretical width of the Higgs. This is used for
 defining the m4l window in use. Since in any case we are not interested
 to anything else than mH=125 or mH=126, I hard-coded these values. To be fixed.
 
--) for an example of how to use the SuperMELA class, refer to the macros
-test/testSuperMELAKD.C
+-) for an example of how to use the SuperMELA class, refer to the macro:
 test/prodSuperMELAKD.C
 
-prodSuperMELAKD.C is probably more realistic and this is what was used 
-for the tests done so far for the signal separation. 
-testSuperMELAKD.C is easier to follow, though. I would start by giving 
-a look at this and then moving to prodSuperMELAKD.C
+prodSuperMELAKD.C is what is used for the mass production for the signal separation,
+starting from CJLST trees. There are other versions of the same macro,
+taylored for the Z+jets Control Region and data. The same notes as for the
+standard macro apply to them.
+ 
+testSuperMELAKD.C is meant to be a simpler example but is outdated
+in this moment.
 
 -) in prodSuperMELAKD you set the input directory, the output directory,
 the name of the samples to loop on and the sqrtS. These params are all
-defined at the top of the macro. Then, in a root session:
+defined at the top of the macro. The version of CJLST trees in input
+for this tag was '261012'. Then, in a root session:
 
 [0] .x loadMELA.C
 [1] .L prodSuperMELAKD.C++
@@ -60,8 +63,7 @@ and you let it go.
 2) : generate 2D templates
 
 once you have flat trees containing superMELA, you can generate 2D templates
-(TH2F) with superMELA and psMELA (or graviMELA, it should be in the stat trees
-of the batch of October 2012). 
+(TH2F) with superMELA and psMELA (or graviMELA). 
 
 -) Use the macro HiggsAnalysis/HZZ4L_CombinationPy/AnalysisInputs/generateTemplatesSMD.C
 Edit the "Really important parameters" section at the top of the file. There are
@@ -70,12 +72,19 @@ Also, you should change in the file AnalysisInputs/ConfigSMD.h the dirs with the
 new trees with superMELA. Then it's just a matter of doing
 root -q -b loadMELA.C generateTemplatesSMD.C+
 
+-) there is another, similar macro for the Z+jets CR generateTemplatesSMD_forCR.C
+Make sure that the various settings (outdir, binning, smoothing procedure)
+are consistent with the standard macro.
+
 You may also need a dummy observed dataset with superMELA in it.
-There is the script generateDummyObsDataSMD.C that does it. This macro is
-really crappy, I apologize but I didn't have time to clean it up. In a ROOT
+There is the script generateDummyObsDataSMD.C that does it. In a ROOT
 session you compile it and then execute it passing as argument the 
 desired integrated lumi. The code reads in the MC files and samples randomly
 events out of them, according to the desired lumi.
+
+-) for producing templates with supermela vs gravimela, you need to change
+the name of the branch to be used as KD (it is in the 
+"Really important parameters" section at the top of the file). 
 
 
 
@@ -96,14 +105,28 @@ cp ZZMatrixElement/SuperMELA/scripts/makeDCsandWSsSMD.py  HiggsAnalysis/HZZ4L_Co
 cd HiggsAnalysis/HZZ4L_CombinationPy/CreateDatacards/
 
 You must set the correct flags and parameters in the default input cards in SM_inputs_8TeV 
-for creating cards and ws suitable for hypothesis testing !
+for creating cards and ws suitable for hypothesis testing ! In particular, in order 
+to properly activate the shape systematics, the input cards should have these settings:
+
+### for hypothesis testing ###
+doHypTest True
+#altHypLabel _ALT
+systematic CMS_zz4l_bkgMELA True
+systematic CMS_zz4l_sigMELA True
+systematic CMS_zz4l_mean False
+systematic CMS_zz4l_sigma False
+systematic CMS_zz4l_mean False
+systematic CMS_zz4l_sigma False
+systematic CMS_zz4l_n False
+systematic CMS_zz4l_gamma False
+
+
 
 Run it using makeDCsandWSsSMD.py instead of the usual makeDCsandWSs.py (example for 8TeV):
 python makeDCsandWSsSMD.py -i SM_inputs_8TeV -a HypTest_smd_8TeV -b -t templates2D_smd_8TeV/ > output_HypTest_smd_8TeV.txt
 
 This special version of datacardClass will produce cards to be used with Combine !
-Also, there is no point in creating cards and ws for a mass different
-to what was used in the calculation of superMELA for the templates.
+
 
 WARNING: the special scripts for making cards for Hyp separation is based on
 the tag bonato_supermela_20121021 of the card-making package.

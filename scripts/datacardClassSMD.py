@@ -486,8 +486,8 @@ class datacardClass:
             funcList2_ggH.add(sigTemplatePdf_ggH)
 ###            funcList2_ggH.add(sigTemplatePdf_ggH_syst2Up)
 ###            funcList2_ggH.add(sigTemplatePdf_ggH_syst2Down)
-            funcList2_ggH.add(sigTemplatePdf_ggH_syst2Up)
-            funcList2_ggH.add(sigTemplatePdf_ggH_syst2Down)  
+            funcList1_ggH.add(sigTemplatePdf_ggH_syst2Up)
+            funcList1_ggH.add(sigTemplatePdf_ggH_syst2Down)  
 
             if(self.isAltSig):
                 funcList1_ggH_ALT.add(sigTemplatePdf_ggH_ALT)
@@ -496,8 +496,8 @@ class datacardClass:
                 funcList2_ggH_ALT.add(sigTemplatePdf_ggH_ALT)
 ###                funcList2_ggH_ALT.add(sigTemplatePdf_ggH_ALT_syst2Up)
 ###                funcList2_ggH_ALT.add(sigTemplatePdf_ggH_ALT_syst2Down)
-                funcList2_ggH_ALT.add(sigTemplatePdf_ggH_ALT_syst2Up)
-                funcList2_ggH_ALT.add(sigTemplatePdf_ggH_ALT_syst2Down)
+                funcList1_ggH_ALT.add(sigTemplatePdf_ggH_ALT_syst2Up)
+                funcList1_ggH_ALT.add(sigTemplatePdf_ggH_ALT_syst2Down)
         else:
             
             funcList1_ggH.add(sigTemplatePdf_ggH)
@@ -523,7 +523,7 @@ class datacardClass:
         if(self.sigMorph):
             morphVarListSig1.add(syst1MorphSig)  ## just one morphing for all signal processes (fully correlated systs)
 ###            morphVarListSig2.add(syst2MorphSig)
-            morphVarListSig2.add(syst2MorphSig)
+            morphVarListSig1.add(syst2MorphSig)
             
         TemplateName = "sigTemplateMorphPdf_ggH_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         sigTemplateMorphPdf_ggH = ROOT.FastVerticalInterpHistPdf2D(TemplateName,TemplateName,SD,D,false,funcList1_ggH,morphVarListSig1,1.0,1)
@@ -1047,8 +1047,9 @@ class datacardClass:
         ## --------------------------- DATASET --------------------------- ##
 
         dataFileDir = "CMSdata"
-        dataTreeName = "SelectedTree" ### "data_obs" 
+        dataTreeName = "data_obs"  ### "data_obs" "SelectedTree" 
         dataFileName = "{0}/hzz{1}_{2}.root".format(dataFileDir,self.appendName,self.lumi)
+###        dataFileName = "{0}/hzzDummyTMP_{1}_{2}_withSMD_doubleCBonly.root".format(dataFileDir,self.appendName,self.lumi)
         if (DEBUG): print dataFileName," ",dataTreeName 
         data_obs_file = ROOT.TFile(dataFileName)
 
@@ -1068,7 +1069,8 @@ class datacardClass:
             else: data_obs = ROOT.RooDataSet(datasetName,datasetName,data_obs_tree,ROOT.RooArgSet(CMS_zz4l_mass))
 		
         if (self.is2D == 1):
-            data_obs = ROOT.RooDataSet(datasetName,datasetName,data_obs_tree,ROOT.RooArgSet(SD,D))
+###            data_obs = ROOT.RooDataSet(datasetName,datasetName,data_obs_tree,ROOT.RooArgSet(SD,D))
+            data_obs = ROOT.RooDataSet(datasetName,datasetName,data_obs_tree,ROOT.RooArgSet(CMS_zz4l_mass,SD,D),'CMS_zz4l_mass>105.0&&CMS_zz4l_mass<140.0') ###.reduce(ROOT.RooArgSet(SD,D))
 
         if (self.is2D == 2):
             data_obs = ROOT.RooDataSet(datasetName,datasetName,data_obs_tree,ROOT.RooArgSet(SD))
