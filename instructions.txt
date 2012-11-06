@@ -3,8 +3,8 @@ Required packages and installation:
 
 cvs co -A HiggsAnalysis/CombinedLimit
 cvs co -r V00-01-05 -d ZZMatrixElement/MELA  UserCode/CJLST/ZZMatrixElement/MELA/
-cvs co -r bonato_supermela_20121101 -d ZZMatrixElement/SuperMELA  UserCode/CJLST/ZZMatrixElement/SuperMELA/
-cvs co -r bonato_supermela_20121101 -d HiggsAnalysis/HZZ4L_CombinationPy/ UserCode/HZZ4L_Combination/CombinationPy
+cvs co -r bonato_supermela_20121106 -d ZZMatrixElement/SuperMELA  UserCode/CJLST/ZZMatrixElement/SuperMELA/
+cvs co -r bonato_supermela_20121106 -d HiggsAnalysis/HZZ4L_CombinationPy/ UserCode/HZZ4L_Combination/CombinationPy
 
 scram b -j7 #it will take >20 minutes
 
@@ -65,14 +65,14 @@ and you let it go.
 once you have flat trees containing superMELA, you can generate 2D templates
 (TH2F) with superMELA and psMELA (or graviMELA). 
 
--) Use the macro HiggsAnalysis/HZZ4L_CombinationPy/AnalysisInputs/generateTemplatesSMD.C
+-) Use the macro HiggsAnalysis/HZZ4L_CombinationPy/AnalysisInputs/SuperMELA/generateTemplatesSMD.C
 Edit the "Really important parameters" section at the top of the file. There are
 more details in the comments next to the variables.
 Also, you should change in the file AnalysisInputs/ConfigSMD.h the dirs with the
 new trees with superMELA. Then it's just a matter of doing
 root -q -b loadMELA.C generateTemplatesSMD.C+
 
--) there is another, similar macro for the Z+jets CR generateTemplatesSMD_forCR.C
+-) there is another similar macro for the Z+jets CR generateTemplatesSMD_forCR.C
 Make sure that the various settings (outdir, binning, smoothing procedure)
 are consistent with the standard macro.
 
