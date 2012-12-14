@@ -28,7 +28,7 @@ void prodSuperMELAKD_forCR(){
   //load MELA and SuperMELA libraries
   //.x loadMela.C
 
-  const float mH=125.0;
+  const float mH=126.0;
   int sqrts=7;
   string str_sqrts="XTeV";
   if(sqrts==7)str_sqrts="7TeV";//"7TeV";//"8TeV"
@@ -37,7 +37,7 @@ void prodSuperMELAKD_forCR(){
 
   string chan[3]={"4mu","4e","2e2mu"};
   const string genType="PRODFSR";
-  const int nSamples=3;//10 for 8 TeV, 9 for 7TeV
+  const int nSamples=3;
   string files[3]={"HZZ4lTree_DoubleMu","HZZ4lTree_DoubleEle","HZZ4lTree_DoubleOr"};
 
 
@@ -53,7 +53,7 @@ void prodSuperMELAKD_forCR(){
 
     string dirSqrtS=(str_sqrts=="7TeV"? genType : genType+"_8TeV");
     string dirName="root://lxcms02//data/Higgs/rootuplesOut/261012/"+dirSqrtS+"/CR/";
-    string outDirName="/afs/cern.ch/user/b/bonato/work/PhysAnalysis/HZZ4L/Trees_261012/"+genType+"_"+str_sqrts+"/CR/";
+    string outDirName="/afs/cern.ch/user/b/bonato/work/PhysAnalysis/HZZ4L/Trees_061112_M126/"+genType+"_"+str_sqrts+"/CR/";
 
     cout<<"\n----------\nProcessing "<<files[ich].c_str()<<"  "<<chan[ich].c_str()<<endl;
 
@@ -65,7 +65,7 @@ void prodSuperMELAKD_forCR(){
   //  cout<<"\n\n\n\n!!!!!!!!!!!!!!!!!!!!!!!!!!\n\nWARNING : File "<<fileName.c_str()<<" NOT FOUND ! Skipping it"<<"\n\n!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n\n\n"<<endl;
   //  continue;
   // }
-  TFile *fIn=TFile::Open(fileName.c_str(),"READ");
+  //  TFile *fIn=TFile::Open(fileName.c_str(),"READ");
   TChain *sigTree=new TChain("SelectedTree");
   
   //string fileName="./HZZ4lTree_H125_withDiscriminants.root";
@@ -109,6 +109,7 @@ void prodSuperMELAKD_forCR(){
   double smdSyst1Up, smdSyst1Down, smdSyst2Up, smdSyst2Down, melaTmp,psigTmp,pbkgTmp;
   float psmela,psigps,pbkgps,gravimela;
   double smdCopy,psmelaCopy,mzzCopy;
+  int leptChannel;
 
  string outFileName=outDirName+files[ich]+"_withSMD_doubleCBonly.root";
  TFile *fout=new TFile(outFileName.c_str(),"RECREATE");
@@ -125,6 +126,8 @@ void prodSuperMELAKD_forCR(){
  outTree->Branch("ZZLD_PSig",&melapsigOut,"ZZLD_PSig/D");
  outTree->Branch("ZZLD_PBkg",&melapbkgOut,"ZZLD_PBkg/D");
  outTree->Branch("superLD",&smd,"superLD/D");
+ outTree->Branch("superLD_PSig",&psig,"superLD_PSig/D");
+ outTree->Branch("superLD_PBkg",&pbkg,"superLD_PBkg/D");
  outTree->Branch("pseudoLD",&psmela,"pseudoLD/F");
  outTree->Branch("graviLD",&gravimela,"graviLD/F");
  outTree->Branch("MC_weight",&w,"MC_weight/F");
@@ -136,6 +139,7 @@ void prodSuperMELAKD_forCR(){
  outTree->Branch("CMS_zz4l_mass",&mzzCopy,"CMS_zz4l_mass/D");
  outTree->Branch("CMS_zz4l_smd",&smdCopy,"CMS_zz4l_smd/D");
  outTree->Branch("CMS_zz4l_KD",&psmelaCopy,"CMS_zz4l_KD/D");
+ outTree->Branch("leptChannel",&leptChannel,"leptChannel/I");
  // outTree->Branch("ZZLD",&oldD,"");
 
  PseudoMELA *mypsLD=new PseudoMELA();
@@ -261,6 +265,11 @@ void prodSuperMELAKD_forCR(){
    mzzCopy=mzz;
    smdCopy=smd;
    psmelaCopy=psmela;
+   if(chan[ich]=="4mu")leptChannel=1;
+   else if(chan[ich]=="4e")leptChannel=2;
+   else if(chan[ich]=="2e2mu")leptChannel=3;
+   else leptChannel=-1;
+
    hSMD->Fill(smd);
    outTree->Fill();
  }//end loop on events
