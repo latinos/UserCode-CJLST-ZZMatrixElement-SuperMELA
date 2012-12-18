@@ -1,5 +1,5 @@
-#ifndef MELA_SuperMela_h
-#define MELA_SuperMela_h
+#ifndef SUPERMELA_SuperMela_h
+#define SUPERMELA_SuperMela_h
 
 
 #include <Riostream.h>
@@ -81,8 +81,11 @@ class SuperMELA {
     phi_=phi;     phistar1_=phistar1;
   }
 
-  void SetPathToCards(string dirToCards){ pathToCards_=dirToCards;
-    if(verbose_)std::cout<<"New path to cards is "<<pathToCards_.c_str()<<std::endl;}
+  void SetPathToCards(string dirToCards){ 
+    //    if(verbose_)std::cout<<"Current path to cards is "<<pathToCards_.c_str()<<"  <<---"<<std::endl;
+    pathToCards_=dirToCards;
+    if(verbose_)std::cout<<"New path to cards is "<<pathToCards_.c_str()<<std::endl;
+}
 
 
 

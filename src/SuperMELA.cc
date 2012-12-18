@@ -1,6 +1,6 @@
 #include <boost/algorithm/string.hpp>
 #include <sstream>
-#include "../interface/SuperMELA.h"
+#include "ZZMatrixElement/SuperMELA/interface/SuperMELA.h"
 #include "RooArgSet.h"
 #include "RooArgList.h"
 #include "HZZ4L_Combination/CombinationPy/CreateDatacards/include/HiggsCSandWidth.cc"
@@ -9,7 +9,7 @@
 using namespace RooFit;
 
 SuperMELA::SuperMELA(double mH,string channel,int LHCsqrts){
-
+  // std::cout<<"In SuperMELA::SuperMELA("<<mH<<", "<<channel.c_str()<<" , "<<LHCsqrts <<std::endl;
   verbose_=true;
   sqrts_=LHCsqrts;
   mHVal_=mH;
@@ -23,6 +23,7 @@ SuperMELA::SuperMELA(double mH,string channel,int LHCsqrts){
   melaProd_=0;
 
   pathToCards_="../../../HiggsAnalysis/HZZ4L_CombinationPy/CreateDatacards/SM_inputs_8TeV/";
+  //std::cout<<"Built SuperMELA, path is "<<pathToCards_.c_str()<<std::endl;
   //  init();
 
 }
