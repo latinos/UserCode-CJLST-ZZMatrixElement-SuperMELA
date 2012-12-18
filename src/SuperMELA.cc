@@ -3,7 +3,7 @@
 #include "../interface/SuperMELA.h"
 #include "RooArgSet.h"
 #include "RooArgList.h"
-#include "HiggsAnalysis/HZZ4L_CombinationPy/CreateDatacards/include/HiggsCSandWidth.cc"
+#include "HZZ4L_Combination/CombinationPy/CreateDatacards/include/HiggsCSandWidth.cc"
 #include "RooPlot.h"
 
 using namespace RooFit;
