@@ -1156,14 +1156,7 @@ class datacardClass:
         
         if(self.isAltSig):
 
-        ### correction to the yield related to interference effects
-        ### (depends on spin hypothesis, only for 4e and 4mu)
-            corrForInterf = self.calcInterfYieldCorr(self.channel,self.spinHyp)
-            corrForInterfName = "sigRateCorr_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-            rrvcorrForInterf = ROOT.RooRealVar(corrForInterfName, corrForInterfName, corrForInterf )    
-        #    rfvSigRate_ggH_ALT=ROOT.RooFormulaVar(rfvSigRate_ggH,"ggH{0}_norm".format(self.appendHypType))
-            rfvSigRate_ggH_ALT=ROOT.RooFormulaVar("ggH{0}_norm".format(self.appendHypType),"@0*@1", ROOT.RooArgList(rfvSigRate_ggH,rrvcorrForInterf))
-            
+            rfvSigRate_ggH_ALT=ROOT.RooFormulaVar(rfvSigRate_ggH,"ggH{0}_norm".format(self.appendHypType))
             print 'Compare signal rates: STD=',rfvSigRate_ggH.getVal(),"   ALT=",rfvSigRate_ggH_ALT.getVal()
             getattr(w,'import')(rfvSigRate_ggH_ALT, ROOT.RooFit.RecycleConflictNodes())
             
@@ -1275,7 +1268,12 @@ class datacardClass:
                channelList=['ggH','ggH','qqZZ','ggZZ','zjets','ttbar','zbb']
                channelName1D=['ggH','ggH{0}'.format(AltLabel),'bkg_qqzz','bkg_ggzz','bkg_zjets','bkg_ttbar','bkg_zbb']
                channelName2D=['ggH','ggH{0}'.format(AltLabel),'bkg2d_qqzz','bkg2d_ggzz','bkg2d_zjets','bkg2d_ttbar','bkg2d_zbb']
-         
+
+
+
+        if ( len(channelList) != len(channelName2D) ) :
+            raise RuntimeError, "Mismatch in length of channel arrays!"
+
         for chan in channelList:
             if theInputs[chan]:
                 file.write("a{0} ".format(self.channel))
@@ -1287,28 +1285,18 @@ class datacardClass:
         file.write("process ")
 
         i=0
-        if not self.is2D==1 :
-            for chan in channelList:
-                if theInputs[chan]:
-                    file.write("{0} ".format(channelName1D[i]))
-                    i+=1
-                else:
-                    if chan.startswith("ggH") and theInputs["all"] :
-                        file.write("{0} ".format(channelName2D[i]))
-#                        print 'writing in card TOTAL SUM, index=',i,'  chan=',chan,'  ',channelName2D[i]
-                        i+=1
-        else:
-            for chan in channelList:
-#                print 'checking if ',chan,' is in the list of to-do'
-                if theInputs[chan]:
+
+        for chan in channelList:
+            #  print 'checking if ',chan,' is in the list of to-do'
+            if theInputs[chan]:
+                file.write("{0} ".format(channelName2D[i]))
+                #  print 'writing in card index=',i,'  chan=',chan
+                i+=1
+            else:
+                if chan.startswith("ggH") and theInputs["all"] :
                     file.write("{0} ".format(channelName2D[i]))
-#                    print 'writing in card index=',i,'  chan=',chan
+                    # print 'writing in card TOTAL SUM, index=',i,'  chan=',chan,'  ',channelName2D[i]
                     i+=1
-                else:
-                    if chan.startswith("ggH") and theInputs["all"] :
-                        file.write("{0} ".format(channelName2D[i]))
-#                        print 'writing in card TOTAL SUM, index=',i,'  chan=',chan,'  ',channelName2D[i]
-                        i+=1
         
         file.write("\n")
             
@@ -1324,9 +1312,20 @@ class datacardClass:
         file.write("\n")
             
         file.write("rate ")
+        ### correction to the yield related to interference effects
+        ### (depends on spin hypothesis, only for 4e and 4mu)
+        corrForInterf = self.calcInterfYieldCorr(self.channel,self.spinHyp)
+   ###     print 'Corr for interference is ',corrForInterf
+        ind=0
         for chan in channelList:
             if theInputs[chan] or (chan.startswith("ggH") and theInputs["all"]):
-                file.write("{0:.4f} ".format(theRates[chan]))
+      ###          print 'ChannelName2D=',channelName2D[ind]
+                if ( channelName2D[ind]=="ggH_ALT") :
+   ###                 print 'I will write in the card a factor ',theRates[chan]*corrForInterf
+                    file.write("{0:.4f} ".format(theRates[chan]*corrForInterf))
+                else :
+                    file.write("{0:.4f} ".format(theRates[chan]))
+            ind += 1
         file.write("\n")
         file.write("------------\n")
 
