@@ -26,14 +26,14 @@ def parseOptions():
     parser.add_option('-t', '--templateDir', type='string', dest='templateDir', default="templates2D" ,help='directory with 2D template histos')
     parser.add_option('-e', '--massError',   dest='massError',       type='int',    default=0,     help='massError (default:0)')
     parser.add_option('-u', '--mekd',   dest='mekd',       type='int',    default=0,     help='mekd double gaussian inputs (default:0)')
-
+    parser.add_option('--spinHypCode', dest='spinCode' , type='int', default=-1, help='code for identifying the spin hypothesis test: 0=0+/0-, 1=0+/2m+, 2=0+/0h+, 3=0+/1+, 4=0+/1- (default=-1, dummy, no effect)')
     
     # store options and arguments as global variables
     global opt, args
     (opt, args) = parser.parse_args()
 
-    if (opt.is2D != 0 and opt.is2D != 1):
-        print 'The input '+opt.is2D+' is unkown for is2D.  Please choose 0 or 1. Exiting...'
+    if (opt.is2D != 0 and opt.is2D != 1 and opt.is2D != 2):
+        print 'The input '+opt.is2D+' is unkown for is2D.  Please choose 0 or 1 or 2. Exiting...'
         sys.exit()
 
     if (opt.appendName == ''):
@@ -74,8 +74,8 @@ def creationLoop(directory):
     global opt, args
     
     startMass=[ 125.0 ]
-    stepSizes=[ 0.5 ]
-    endVal=[ 1 ]
+    stepSizes=[ 1.0 ]
+    endVal=[ 2 ]
 
     myClass = datacardClass()
     myClass.loadIncludes()
@@ -107,12 +107,12 @@ def creationLoop(directory):
             makeDirectory(directory+'/HCG_XSxBR/'+mhs)
 
             print mh
-            myClass.makeCardsWorkspaces(mh,opt.is2D,directory,theInputs4e,opt.templateDir, opt.massError, opt.mekd)
-            myClass.makeCardsWorkspaces(mh,opt.is2D,directory,theInputs4mu,opt.templateDir,opt.massError, opt.mekd)
-            myClass.makeCardsWorkspaces(mh,opt.is2D,directory,theInputs2e2mu,opt.templateDir,opt.massError, opt.mekd)
+            myClass.makeCardsWorkspaces(mh,opt.is2D,directory,theInputs4e,opt.templateDir,opt.spinCode, opt.massError)
+            myClass.makeCardsWorkspaces(mh,opt.is2D,directory,theInputs4mu,opt.templateDir,opt.spinCode, opt.massError)
+            myClass.makeCardsWorkspaces(mh,opt.is2D,directory,theInputs2e2mu,opt.templateDir,opt.spinCode, opt.massError)
                           
             c += 1
-            
+
 
 	a += 1
 

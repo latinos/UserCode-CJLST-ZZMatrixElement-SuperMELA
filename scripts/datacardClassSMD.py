@@ -107,7 +107,7 @@ class datacardClass:
             return falseVar
     
     # main datacard and workspace function
-    def makeCardsWorkspaces(self, theMH, theis2D, theOutputDir, theInputs,theTemplateDir="templates2D", theIncludingError=False, theMEKD=False):
+    def makeCardsWorkspaces(self, theMH, theis2D, theOutputDir, theInputs,theTemplateDir="templates2D", theSpinHyp=-1, theIncludingError=False):
 
         ## --------------- SETTINGS AND DECLARATIONS --------------- ##
         DEBUG = False
@@ -120,8 +120,9 @@ class datacardClass:
         self.sigMorph = theInputs['useCMS_zz4l_sigMELA']
         self.bkgMorph = theInputs['useCMS_zz4l_bkgMELA']
         self.templateDir = theTemplateDir
+        self.spinHypID= theSpinHyp
 	self.bIncludingError=theIncludingError
-	self.bMEKD = theMEKD
+	self.spinHyp = theSpinHyp
         
         FactorizedShapes = False
 
@@ -202,9 +203,9 @@ class datacardClass:
 
         ## -------------------------- SIGNAL SHAPE ----------------------------------- ##
     
-        bins = 1000
-        if(self.bUseCBnoConvolution): bins = 200
-        if(self.bIncludingError): bins = 200
+        ##bins = 1000
+        bins = 200
+        
 
         CMS_zz4l_mass = ROOT.RooRealVar("CMS_zz4l_mass","CMS_zz4l_mass",self.low_M,self.high_M)
         CMS_zz4l_mass.setBins(bins,"fft") 
@@ -328,45 +329,35 @@ class datacardClass:
         rfv_sigma_CB = ROOT.RooFormulaVar()
         
         name = "CMS_zz4l_n_{0:.0f}_{1:.0f}_centralValue".format(self.channel,self.sqrts)
-        if self.isHighMass : rfv_n_CB = ROOT.RooFormulaVar(name,"("+theInputs['n_CB_shape_HM']+")"+"*(1+@1)",ROOT.RooArgList(self.MH,CMS_zz4l_n))
-        else : rfv_n_CB = ROOT.RooFormulaVar(name,"("+theInputs['n_CB_shape']+")"+"*(1+@1)",ROOT.RooArgList(self.MH,CMS_zz4l_n))
+        rfv_n_CB = ROOT.RooFormulaVar(name,"("+theInputs['n_CB_shape']+")"+"*(1+@1)",ROOT.RooArgList(self.MH,CMS_zz4l_n))
 
         name = "CMS_zz4l_alpha_{0:.0f}_centralValue".format(self.channel)
-        if self.isHighMass : rfv_alpha_CB = ROOT.RooFormulaVar(name,theInputs['alpha_CB_shape_HM'], ROOT.RooArgList(self.MH))
-        else : rfv_alpha_CB = ROOT.RooFormulaVar(name,theInputs['alpha_CB_shape'], ROOT.RooArgList(self.MH))
+        rfv_alpha_CB = ROOT.RooFormulaVar(name,theInputs['alpha_CB_shape'], ROOT.RooArgList(self.MH))
 
         name = "CMS_zz4l_n2_{0:.0f}_{1:.0f}_centralValue".format(self.channel,self.sqrts)
-        #if self.isHighMass : rfv_n2_CB = ROOT.RooFormulaVar(name,"("+theInputs['n2_CB_shape_HM']+")"+"*(1+@1)",ROOT.RooArgList(self.MH,CMS_zz4l_n2))
-        #else : rfv_n2_CB = ROOT.RooFormulaVar(name,"("+theInputs['n2_CB_shape']+")"+"*(1+@1)",ROOT.RooArgList(self.MH,CMS_zz4l_n2))
-        if self.isHighMass : rfv_n2_CB = ROOT.RooFormulaVar(name,"("+theInputs['n2_CB_shape_HM']+")",ROOT.RooArgList(self.MH))
-        else : rfv_n2_CB = ROOT.RooFormulaVar(name,"("+theInputs['n2_CB_shape']+")",ROOT.RooArgList(self.MH))
+        rfv_n2_CB = ROOT.RooFormulaVar(name,"("+theInputs['n2_CB_shape']+")",ROOT.RooArgList(self.MH))
 
         name = "CMS_zz4l_alpha2_{0:.0f}_centralValue".format(self.channel)
-        if self.isHighMass : rfv_alpha2_CB = ROOT.RooFormulaVar(name,theInputs['alpha2_CB_shape_HM'], ROOT.RooArgList(self.MH))
-        else : rfv_alpha2_CB = ROOT.RooFormulaVar(name,theInputs['alpha2_CB_shape'], ROOT.RooArgList(self.MH))
+        rfv_alpha2_CB = ROOT.RooFormulaVar(name,theInputs['alpha2_CB_shape'], ROOT.RooArgList(self.MH))
 
+        if (DEBUG): print " DEBUG *********  ", theInputs['mean_CB_shape']
         name = "CMS_zz4l_mean_sig_{0:.0f}_{1:.0f}_centralValue".format(self.channel,self.sqrts)
+        if (DEBUG): print " DEBUG *********  Name of rfv_mean_CB: ",name
         if (self.channel == self.ID_4mu) :
-            if self.isHighMass : rfv_mean_CB = ROOT.RooFormulaVar(name,"("+theInputs['mean_CB_shape_HM']+")"+"+@0*@1", ROOT.RooArgList(self.MH, CMS_zz4l_mean_m_sig))
-            else : rfv_mean_CB = ROOT.RooFormulaVar(name,"("+theInputs['mean_CB_shape']+")"+"+@0*@1", ROOT.RooArgList(self.MH, CMS_zz4l_mean_m_sig))
+            rfv_mean_CB = ROOT.RooFormulaVar(name,"("+theInputs['mean_CB_shape']+")"+"+@0*@1", ROOT.RooArgList(self.MH, CMS_zz4l_mean_m_sig))
         elif (self.channel == self.ID_4e) :
-            if self.isHighMass : rfv_mean_CB = ROOT.RooFormulaVar(name,"("+theInputs['mean_CB_shape_HM']+")"+"+@0*@1", ROOT.RooArgList(self.MH, CMS_zz4l_mean_e_sig))
-            else : rfv_mean_CB = ROOT.RooFormulaVar(name,"("+theInputs['mean_CB_shape']+")"+"+@0*@1", ROOT.RooArgList(self.MH, CMS_zz4l_mean_e_sig))
+            rfv_mean_CB = ROOT.RooFormulaVar(name,"("+theInputs['mean_CB_shape']+")"+"+@0*@1", ROOT.RooArgList(self.MH, CMS_zz4l_mean_e_sig))
         elif (self.channel == self.ID_2e2mu) :
-            if self.isHighMass : rfv_mean_CB = ROOT.RooFormulaVar(name,"("+theInputs['mean_CB_shape_HM']+")"+"+ @0*@1 + @0*@2", ROOT.RooArgList(self.MH, CMS_zz4l_mean_m_sig,CMS_zz4l_mean_e_sig))
-            else : rfv_mean_CB = ROOT.RooFormulaVar(name,"("+theInputs['mean_CB_shape']+")"+"+ @0*@1 + @0*@2", ROOT.RooArgList(self.MH, CMS_zz4l_mean_m_sig,CMS_zz4l_mean_e_sig))
-        
+            rfv_mean_CB = ROOT.RooFormulaVar(name,"("+theInputs['mean_CB_shape']+")"+"+ @0*@1 + @0*@2", ROOT.RooArgList(self.MH, CMS_zz4l_mean_m_sig,CMS_zz4l_mean_e_sig))
+        if (DEBUG): print " DEBUG *********  Valuee of rfv_mean_CB: ",rfv_mean_CB.getVal()
 
         name = "CMS_zz4l_sigma_sig_{0:.0f}_{1:.0f}_centralValue".format(self.channel,self.sqrts)
         if (self.channel == self.ID_4mu) :
-            if self.isHighMass : rfv_sigma_CB = ROOT.RooFormulaVar(name,"("+theInputs['sigma_CB_shape_HM']+")"+"*(1+@1)", ROOT.RooArgList(self.MH, CMS_zz4l_sigma_m_sig))
-            else : rfv_sigma_CB = ROOT.RooFormulaVar(name,"("+theInputs['sigma_CB_shape']+")"+"*(1+@1)", ROOT.RooArgList(self.MH, CMS_zz4l_sigma_m_sig))
+            rfv_sigma_CB = ROOT.RooFormulaVar(name,"("+theInputs['sigma_CB_shape']+")"+"*(1+@1)", ROOT.RooArgList(self.MH, CMS_zz4l_sigma_m_sig))
         elif (self.channel == self.ID_4e) :
-            if self.isHighMass : rfv_sigma_CB = ROOT.RooFormulaVar(name,"("+theInputs['sigma_CB_shape_HM']+")"+"*(1+@1)", ROOT.RooArgList(self.MH, CMS_zz4l_sigma_e_sig))
-            else : rfv_sigma_CB = ROOT.RooFormulaVar(name,"("+theInputs['sigma_CB_shape']+")"+"*(1+@1)", ROOT.RooArgList(self.MH, CMS_zz4l_sigma_e_sig))
+            rfv_sigma_CB = ROOT.RooFormulaVar(name,"("+theInputs['sigma_CB_shape']+")"+"*(1+@1)", ROOT.RooArgList(self.MH, CMS_zz4l_sigma_e_sig))
         elif (self.channel == self.ID_2e2mu) :
-            if self.isHighMass : rfv_sigma_CB = ROOT.RooFormulaVar(name,"("+theInputs['sigma_CB_shape_HM']+")"+"*(1+@1)*(1+@2)", ROOT.RooArgList(self.MH, CMS_zz4l_sigma_m_sig,CMS_zz4l_sigma_e_sig))
-            else : rfv_sigma_CB = ROOT.RooFormulaVar(name,"("+theInputs['sigma_CB_shape']+")"+"*(1+@1)*(1+@2)", ROOT.RooArgList(self.MH, CMS_zz4l_sigma_m_sig,CMS_zz4l_sigma_e_sig))
+            rfv_sigma_CB = ROOT.RooFormulaVar(name,"("+theInputs['sigma_CB_shape']+")"+"*(1+@1)*(1+@2)", ROOT.RooArgList(self.MH, CMS_zz4l_sigma_m_sig,CMS_zz4l_sigma_e_sig))
 
 
         name = "CMS_zz4l_gamma_{0:.0f}_{1:.0f}_centralValue".format(self.channel,self.sqrts)
@@ -388,20 +379,24 @@ class datacardClass:
         print "mean_sig_NoConv ", CMS_zz4l_mean_sig_NoConv.getVal()
         
         ## --------------------- SHAPE FUNCTIONS ---------------------- ##
-    
+        print 'Value of CMS_zz4l_mass ',CMS_zz4l_mass.getVal()
         signalCB_ggH = ROOT.RooDoubleCB("signalCB_ggH","signalCB_ggH",CMS_zz4l_mass, self.getVariable(CMS_zz4l_mean_sig_NoConv,rfv_mean_CB, self.bUseCBnoConvolution) , self.getVariable(CMS_zz4l_massErr,rfv_sigma_CB, self.bIncludingError),rfv_alpha_CB,rfv_n_CB, rfv_alpha2_CB, rfv_n2_CB)
+        print 'Value of signalCB_ggH', signalCB_ggH.getVal()
         #Low mass pdf
         signalBW_ggH = ROOT.RooRelBWUFParam("signalBW_ggH", "signalBW_ggH",CMS_zz4l_mass,CMS_zz4l_mean_BW,CMS_zz4l_widthScale)
+        print 'Value of signalBW_ggH', signalBW_ggH.getVal()
+
         sig_ggH =  ROOT.RooFFTConvPdf("sig_ggH","BW (X) CB",CMS_zz4l_mass,signalBW_ggH,signalCB_ggH, 2)
   
         
         ## Buffer fraction for cyclical behavior
         sig_ggH.setBufferFraction(0.2)
-
+        print 'Value of sig_ggH', sig_ggH.getVal()
         ## --------------------------- SuperMELA 2D PDFS ------------------------- ##
+        print 'SuperMELA 2D PDFS'
+###        discVarName = "CMS_zz4l_pseudoKD"
+        discVarName = "CMS_zz4l_graviKD"
 
-###        discVarName = "CMS_zz4l_KD"
-        discVarName = "graviLD"
         D = ROOT.RooRealVar(discVarName,discVarName,0,1)
     
         templateSigName = "{0}/Dsignal_{1}.root".format(self.templateDir ,self.appendName)
@@ -475,18 +470,13 @@ class datacardClass:
             ###Shape systematics for signal
         funcList1_ggH = ROOT.RooArgList()  
         funcList1_ggH_ALT = ROOT.RooArgList()
-        funcList2_ggH = ROOT.RooArgList()  
-        funcList2_ggH_ALT = ROOT.RooArgList() 
-
+       
         if(self.sigMorph): #this switches on the inclusion of shape systematics
             
             funcList1_ggH.add(sigTemplatePdf_ggH)
             funcList1_ggH.add(sigTemplatePdf_ggH_syst1Up)
             funcList1_ggH.add(sigTemplatePdf_ggH_syst1Down)  
 
-            funcList2_ggH.add(sigTemplatePdf_ggH)
-###            funcList2_ggH.add(sigTemplatePdf_ggH_syst2Up)
-###            funcList2_ggH.add(sigTemplatePdf_ggH_syst2Down)
             funcList1_ggH.add(sigTemplatePdf_ggH_syst2Up)
             funcList1_ggH.add(sigTemplatePdf_ggH_syst2Down)  
 
@@ -494,18 +484,13 @@ class datacardClass:
                 funcList1_ggH_ALT.add(sigTemplatePdf_ggH_ALT)
                 funcList1_ggH_ALT.add(sigTemplatePdf_ggH_ALT_syst1Up)
                 funcList1_ggH_ALT.add(sigTemplatePdf_ggH_ALT_syst1Down)
-                funcList2_ggH_ALT.add(sigTemplatePdf_ggH_ALT)
-###                funcList2_ggH_ALT.add(sigTemplatePdf_ggH_ALT_syst2Up)
-###                funcList2_ggH_ALT.add(sigTemplatePdf_ggH_ALT_syst2Down)
                 funcList1_ggH_ALT.add(sigTemplatePdf_ggH_ALT_syst2Up)
                 funcList1_ggH_ALT.add(sigTemplatePdf_ggH_ALT_syst2Down)
         else:
             
             funcList1_ggH.add(sigTemplatePdf_ggH)
-            funcList2_ggH.add(sigTemplatePdf_ggH)
             if(self.isAltSig):
                 funcList1_ggH_ALT.add(sigTemplatePdf_ggH_ALT)
-                funcList2_ggH_ALT.add(sigTemplatePdf_ggH_ALT)
     
         morphSigVarName = "CMS_zz4l_smd_leptScale_sig_{0:.0f}".format(self.channel)
         syst1MorphSig = ROOT.RooRealVar(morphSigVarName,morphSigVarName,0,-20,20)
@@ -519,7 +504,7 @@ class datacardClass:
             syst2MorphSig.setConstant(True)
         
         morphVarListSig1 = ROOT.RooArgList()
-        morphVarListSig2 = ROOT.RooArgList()
+###        morphVarListSig2 = ROOT.RooArgList() ## just one morphing for all signal processes (fully correlated systs) 
     
         if(self.sigMorph):
             morphVarListSig1.add(syst1MorphSig)  ## just one morphing for all signal processes (fully correlated systs)
@@ -534,19 +519,9 @@ class datacardClass:
             sigTemplateMorphPdf_ggH_ALT = ROOT.FastVerticalInterpHistPdf2D(TemplateName,TemplateName,SD,D,false,funcList1_ggH_ALT,morphVarListSig1,1.0,1)
 
 
-
-    
-
-###        sig2d_ggH = ROOT.RooProdPdf("sig2d_ggH","sig2d_ggH",ROOT.RooArgSet(sig_ggH),ROOT.RooFit.Conditional(ROOT.RooArgSet(sigTemplateMorphPdf_ggH),ROOT.RooArgSet(D) ) )               
-###        sigCB2d_ggH = ROOT.RooProdPdf("sigCB2d_ggH","sigCB2d_ggH",ROOT.RooArgSet(signalCB_ggH),ROOT.RooFit.Conditional(ROOT.RooArgSet(sigTemplateMorphPdf_ggH),ROOT.RooArgSet(D) ))
-        sig2d_ggH =sig_ggH.Clone("sig2d_ggH") #not used, anyway
         sigCB2d_ggH =signalCB_ggH.Clone("sigCB2d_ggH")
 
-            
         if(self.isAltSig):
-###            sig2d_ggH_ALT = ROOT.RooProdPdf("sig2d_ggH{0}".format(self.appendHypType),"sig2d_ggH{0}".format(self.appendHypType),ROOT.RooArgSet(sig_ggH),ROOT.RooFit.Conditional(ROOT.RooArgSet(sigTemplateMorphPdf_ggH_ALT),ROOT.RooArgSet(D) ))
-###            sigCB2d_ggH_ALT = ROOT.RooProdPdf("sigCB2d_ggH{0}".format(self.appendHypType),"sigCB2d_ggH{0}".format(self.appendHypType),ROOT.RooArgSet(signalCB_ggH),ROOT.RooFit.Conditional(ROOT.RooArgSet(sigTemplateMorphPdf_ggH_ALT),ROOT.RooArgSet(D) ))            
-            sig2d_ggH_ALT =sig_ggH.Clone("sig2d_ggH{0}".format(self.appendHypType)) #not used, anyway
             sigCB2d_ggH_ALT =signalCB_ggH.Clone("sigCB2d_ggH{0}".format(self.appendHypType))
 
 
@@ -582,7 +557,7 @@ class datacardClass:
         ##--------------##
 
         ## -------------------------- BACKGROUND SHAPES ---------------------------------- ##
-    
+        print 'BACKGROUND SHAPES'
         ## qqZZ contribution
         name = "CMS_qqzzbkg_a0_{0:.0f}_{1:.0f}".format( self.channel,self.sqrts )
         CMS_qqzzbkg_a0 = ROOT.RooRealVar(name,"CMS_qqzzbkg_a0",115.3,0.,200.)
@@ -735,6 +710,7 @@ class datacardClass:
 
 
       ## ----------------- SuperMELA 2D BACKGROUND SHAPES --------------- ##
+        print 'SUPERMELA 2D BACKGROUND SHAPES'
         templateBkgName = "{0}/Dbackground_qqZZ_{1}.root".format(self.templateDir ,self.appendName)
         bkgTempFile = ROOT.TFile(templateBkgName)
         bkgTemplate = bkgTempFile.Get("h_superDpsD")
@@ -807,8 +783,9 @@ class datacardClass:
 ###        bkg2d_zjets = ROOT.RooProdPdf("bkg2d_zjets","bkg2d_zjets",ROOT.RooArgSet(bkg_zjets),ROOT.RooFit.Conditional(ROOT.RooArgSet(bkgTemplateMorphPdf_zjets),ROOT.RooArgSet(D)))
 
         ## ----------------- SUPERMELA 1D BACKGROUND SHAPES --------------- ##
-        
+
         templateSDBkgName = "{0}/Dbackground_qqZZ_{1}.root".format(self.templateDir ,self.appendName) 
+        print 'SUPERMELA 1D BACKGROUND SHAPES, ',templateSDBkgName
         bkgTempSDFile = ROOT.TFile(templateSDBkgName)
         bkgTemplateSD = bkgTempSDFile.Get("h_superD")
 ###        bkgTemplateSD = bkgTempSDFile.Get("h_superD_mod_rndm") 
@@ -826,22 +803,22 @@ class datacardClass:
         
 
         ## ----------------------- PLOTS FOR SANITY CHECKS -------------------------- ##
-        
-        czz = ROOT.TCanvas( "czz", "czz", 750, 700 )
-        czz.cd()
-        zzframe_s = CMS_zz4l_mass.frame(45)
-        super(RooDoubleCB,signalCB_ggH).plotOn(zzframe_s, ROOT.RooFit.LineStyle(3), ROOT.RooFit.LineColor(kYellow+3) )
-        super(ROOT.RooFFTConvPdf,sig_ggH).plotOn(zzframe_s, ROOT.RooFit.LineStyle(1), ROOT.RooFit.LineColor(1) )
-        super(ROOT.RooqqZZPdf_v2,bkg_qqzz).plotOn(zzframe_s, ROOT.RooFit.LineStyle(1), ROOT.RooFit.LineColor(4) )
-        super(ROOT.RooggZZPdf_v2,bkg_ggzz).plotOn(zzframe_s, ROOT.RooFit.LineStyle(1), ROOT.RooFit.LineColor(6) )
-        super(ROOT.RooLandau,bkg_zjets).plotOn(zzframe_s, ROOT.RooFit.LineStyle(2), ROOT.RooFit.LineColor(6) )
-        zzframe_s.Draw()
-        figName = "{0}/figs/mzz_{1}_{2}.png".format(self.outputDir, self.mH, self.appendName)
-        czz.SaveAs(figName)
-        del czz
+     #    print 'PLOTS FOR SANITY CHECK'
+#         czz = ROOT.TCanvas( "czz", "czz", 750, 700 )
+#         czz.cd()
+#         zzframe_s = CMS_zz4l_mass.frame(45)
+#         super(RooDoubleCB,signalCB_ggH).plotOn(zzframe_s, ROOT.RooFit.LineStyle(3), ROOT.RooFit.LineColor(kYellow+3) )
+#         super(ROOT.RooFFTConvPdf,sig_ggH).plotOn(zzframe_s, ROOT.RooFit.LineStyle(1), ROOT.RooFit.LineColor(1) )
+#         super(ROOT.RooqqZZPdf_v2,bkg_qqzz).plotOn(zzframe_s, ROOT.RooFit.LineStyle(1), ROOT.RooFit.LineColor(4) )
+#         super(ROOT.RooggZZPdf_v2,bkg_ggzz).plotOn(zzframe_s, ROOT.RooFit.LineStyle(1), ROOT.RooFit.LineColor(6) )
+#         super(ROOT.RooLandau,bkg_zjets).plotOn(zzframe_s, ROOT.RooFit.LineStyle(2), ROOT.RooFit.LineColor(6) )
+#         zzframe_s.Draw()
+#         figName = "{0}/figs/mzz_{1}_{2}.png".format(self.outputDir, self.mH, self.appendName)
+#         czz.SaveAs(figName)
+#         del czz
         
         ## ------------------- LUMI -------------------- ##
-        
+        print 'LUMI'
         rrvLumi = ROOT.RooRealVar("cmshzz4l_lumi","cmshzz4l_lumi",self.lumi)  
         
         ## ----------------------- SIGNAL RATES ----------------------- ##
@@ -857,7 +834,7 @@ class datacardClass:
             fr_low_M = 100
             fr_high_M = 1400
             
-
+        print 'CMS_zz4l_mass range: ',fr_low_M,'  ',fr_high_M
         CMS_zz4l_mass.setRange("fullrangesignal",fr_low_M,fr_high_M)
         CMS_zz4l_mass.setRange("fullrange",100,1400)
         
@@ -868,8 +845,8 @@ class datacardClass:
         else:
             rfvCsFilter = ROOT.RooFormulaVar(filterName,"@0",ROOT.RooArgList(one))
 
-        if(DEBUG):
-            print "@@@@@@@ rfvCsFilter = ",rfvCsFilter.getVal()
+        # if(DEBUG):
+        print "@@@@@@@ rfvCsFilter = ",rfvCsFilter.getVal()
 
         sigEffName = "hzz4lsigeff_{0:.0f}_{1:.0f}_a1".format(self.channel,self.sqrts)
         rrva1 = ROOT.RooRealVar(sigEffName,sigEffName, theInputs['sigEff_a1'])
@@ -932,41 +909,19 @@ class datacardClass:
         sigRate_ZH = csCorrection*CS_ZH*BR*sigEfficiency*1000.*self.lumi
         sigRate_ttH = csCorrection*CS_ttH*BR*sigEfficiency*1000.*self.lumi
        
-        tmpNormSigNoConv = signalCB_ggH.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass), ROOT.RooFit.Range("fullrangesignal") ).getVal()
-        tmpNormSigConv = sig_ggH.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass), ROOT.RooFit.Range("fullrangesignal") ).getVal()
-      
-      
-        normalizationSignal = 0.0
-        normalizationSignal = self.getVariable(tmpNormSigNoConv,tmpNormSigConv,self.bUseCBnoConvolution)
+        normalizationSignal = signalCB_ggH.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass), ROOT.RooFit.Range("fullrangesignal") ).getVal()
+        
             
         print "#################### ",signalCB_ggH.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass), ROOT.RooFit.Range("fullrangesignal") ).getVal()
         print "#################### ",signalCB_ggH.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass), ROOT.RooFit.Range("shape") ).getVal()
-        print "#################### ",sig_ggH.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass), ROOT.RooFit.Range("fullrangesignal") ).getVal()
+   ####     print "#################### ",sig_ggH.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass), ROOT.RooFit.Range("fullrangesignal") ).getVal()
         
         sclFactorSig_ggH = sigRate_ggH/normalizationSignal
-        sclFactorSig_VBF = sigRate_VBF/normalizationSignal
-        sclFactorSig_WH = sigRate_WH/normalizationSignal
-        sclFactorSig_ZH = sigRate_ZH/normalizationSignal
-        sclFactorSig_ttH = sigRate_ttH/normalizationSignal
-
         integral_ggH = 0.0
-        integral_VBF = 0.0
-        integral_WH  = 0.0
-        integral_ZH  = 0.0
-        integral_ttH = 0.0
-
-        integral_ggH = self.getVariable(signalCB_ggH.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass), ROOT.RooFit.Range("shape") ).getVal(),sig_ggH.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass), ROOT.RooFit.Range("shape") ).getVal(),self.bUseCBnoConvolution)
-        ####same signal shape for all chans
-        integral_VBF = self.getVariable(signalCB_ggH.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass), ROOT.RooFit.Range("shape") ).getVal(),sig_ggH.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass), ROOT.RooFit.Range("shape") ).getVal(),self.bUseCBnoConvolution)
-        integral_WH = self.getVariable(signalCB_ggH.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass), ROOT.RooFit.Range("shape") ).getVal(),sig_ggH.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass), ROOT.RooFit.Range("shape") ).getVal(),self.bUseCBnoConvolution)
-        integral_ZH = self.getVariable(signalCB_ggH.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass), ROOT.RooFit.Range("shape") ).getVal(),sig_ggH.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass), ROOT.RooFit.Range("shape") ).getVal(),self.bUseCBnoConvolution)
-        integral_ttH = self.getVariable(signalCB_ggH.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass), ROOT.RooFit.Range("shape") ).getVal(),sig_ggH.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass), ROOT.RooFit.Range("shape") ).getVal(),self.bUseCBnoConvolution)
-        
-        integral_ggH = self.getVariable(signalCB_ggH.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass), ROOT.RooFit.Range("shape") ).getVal(),sig_ggH.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass), ROOT.RooFit.Range("shape") ).getVal(),self.bUseCBnoConvolution)
-        
+     
+        integral_ggH =signalCB_ggH.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass), ROOT.RooFit.Range("shape") ).getVal()
         sigRate_ggH_Shape = sclFactorSig_ggH*integral_ggH
-        
-        
+           
         normSigName = "cmshzz4l_normalizationSignal_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         rrvNormSig = ROOT.RooRealVar()
 
@@ -974,6 +929,8 @@ class datacardClass:
         rrvNormSig = ROOT.RooRealVar(normSigName,normSigName, self.getVariable(signalCB_ggH.createIntegral(ROOT.RooArgSet(CMS_zz4l_mass)).getVal(),sig_ggH.createIntegral(ROOT.RooArgSet(CMS_zz4l_mass)).getVal(),self.bUseCBnoConvolution))
         rrvNormSig.setConstant(True)
 
+      
+            
       #  rfvSigRate_ggH = ROOT.RooFormulaVar("ggH_norm","@0*@1*@2*1000*{0}*{2}/{1}".format(self.lumi,rrvNormSig.getVal(),self.getVariable(signalCB_ggH.createIntegral(RooArgSet(CMS_zz4l_mass),ROOT.RooFit.Range("shape")).getVal(),sig_ggH.createIntegral(RooArgSet(CMS_zz4l_mass),ROOT.RooFit.Range("shape")).getVal(),self.bUseCBnoConvolution)),ROOT.RooArgList(rfvCsFilter,rfvSigEff, rhfXsBrFuncV_1))
 
         rfvSigRate_ggH = ROOT.RooFormulaVar("ggH_norm","@0*@1*@2*1000*{0}*{2}/{1}".format(self.lumi,rrvNormSig.getVal(),integral_ggH),ROOT.RooArgList(rfvCsFilter,rfvSigEff, rhfXsBrFuncV_1))
@@ -984,17 +941,7 @@ class datacardClass:
       ###  rfvSigRate_ggH = ROOT.RooFormulaVar("ggH_norm","@0*@1*@2*1000*{0}*{2}/{1}".format(self.lumi,rrvNormSig.getVal(),integral_ggH),ROOT.RooArgList(rfvCsFilter,rfvSigEff, rhfXsBrFuncV_1))
 
         print "Compare integrals: integral_ggH=",integral_ggH,"  ; calculated=",self.getVariable(signalCB_ggH.createIntegral(RooArgSet(CMS_zz4l_mass),ROOT.RooFit.Range("shape")).getVal(),sig_ggH.createIntegral(RooArgSet(CMS_zz4l_mass),ROOT.RooFit.Range("shape")).getVal(),self.bUseCBnoConvolution)
-        
-        rfvSigRate_VBF = ROOT.RooFormulaVar("qqH_norm","@0*@1*@2*1000*{0}*{2}/{1}".format(self.lumi,rrvNormSig.getVal(),integral_VBF),ROOT.RooArgList(rfvCsFilter,rfvSigEff, rhfXsBrFuncV_2))
-                         
 
-        rfvSigRate_WH = ROOT.RooFormulaVar("WH_norm","@0*@1*@2*1000*{0}*{2}/{1}".format(self.lumi,rrvNormSig.getVal(),integral_WH),ROOT.RooArgList(rfvCsFilter,rfvSigEff, rhfXsBrFuncV_3))
-                         
-
-        rfvSigRate_ZH = ROOT.RooFormulaVar("ZH_norm","@0*@1*@2*1000*{0}*{2}/{1}".format(self.lumi,rrvNormSig.getVal(),integral_ZH),ROOT.RooArgList(rfvCsFilter,rfvSigEff, rhfXsBrFuncV_4))
-                         
-
-        rfvSigRate_ttH = ROOT.RooFormulaVar("ttH_norm","@0*@1*@2*1000*{0}*{2}/{1}".format(self.lumi,rrvNormSig.getVal(),integral_ttH),ROOT.RooArgList(rfvCsFilter,rfvSigEff, rhfXsBrFuncV_5))
 
 
         print signalCB_ggH.createIntegral(ROOT.RooArgSet(CMS_zz4l_mass)).getVal(),"   ",sig_ggH.createIntegral(ROOT.RooArgSet(CMS_zz4l_mass)).getVal()
@@ -1037,7 +984,7 @@ class datacardClass:
         bkgRate_zjets_Shape = sclFactorBkg_zjets * bkg_zjets.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass), ROOT.RooFit.Range("shape") ).getVal()
         
         if(DEBUG):
-            print "Shape signal rate: ",sigRate_ggH_Shape,", background rate: ",bkgRate_qqzz_Shape,", ",bkgRate_zjets_Shape," in ",low_M," - ",high_M
+            print "Shape signal rate: ",sigRate_ggH_Shape,", background rate: ",bkgRate_qqzz_Shape,", ",bkgRate_zjets_Shape," in ",self.low_M," - ",self.high_M
             CMS_zz4l_mass.setRange("lowmassregion",100.,160.)
             bkgRate_qqzz_lowmassregion = sclFactorBkg_qqzz * bkg_qqzz.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass), ROOT.RooFit.Range("lowmassregion") ).getVal()
             bkgRate_ggzz_lowmassregion = sclFactorBkg_ggzz * bkg_ggzz.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass), ROOT.RooFit.Range("lowmassregion") ).getVal()
@@ -1065,16 +1012,10 @@ class datacardClass:
         data_obs = ROOT.RooDataSet()
         datasetName = "data_obs_{0}".format(self.appendName)
         
-        if (self.is2D == 0):
-            if(self.bIncludingError): data_obs = ROOT.RooDataSet(datasetName,datasetName,data_obs_tree,ROOT.RooArgSet(CMS_zz4l_mass, CMS_zz4l_massErr))
-            else: data_obs = ROOT.RooDataSet(datasetName,datasetName,data_obs_tree,ROOT.RooArgSet(CMS_zz4l_mass))
-		
-        if (self.is2D == 1):
 ###            data_obs = ROOT.RooDataSet(datasetName,datasetName,data_obs_tree,ROOT.RooArgSet(SD,D))
-            data_obs = ROOT.RooDataSet(datasetName,datasetName,data_obs_tree,ROOT.RooArgSet(CMS_zz4l_mass,SD,D),'CMS_zz4l_mass>105.0&&CMS_zz4l_mass<140.0').reduce(ROOT.RooArgSet(SD,D))
+        data_obs = ROOT.RooDataSet(datasetName,datasetName,data_obs_tree,ROOT.RooArgSet(CMS_zz4l_mass,SD,D),'CMS_zz4l_mass>106.0&&CMS_zz4l_mass<141.0').reduce(ROOT.RooArgSet(SD,D))
 
-        if (self.is2D == 2):
-            data_obs = ROOT.RooDataSet(datasetName,datasetName,data_obs_tree,ROOT.RooArgSet(SD))
+
             
         ## --------------------------- WORKSPACE -------------------------- ##
 
@@ -1108,8 +1049,7 @@ class datacardClass:
         w.importClassCode(RooRelBWUFParam.Class(),True)
         w.importClassCode(RooDoubleCB.Class(),True)
         w.importClassCode(RooFormulaVar.Class(),True)
-        if self.isHighMass :
-            w.importClassCode(RooRelBWHighMass.Class(),True)
+
 
         if( FactorizedShapes ):
             if( self.channel == self.ID_4mu ):
@@ -1128,31 +1068,7 @@ class datacardClass:
     
         if(self.bUseCBnoConvolution) :
             print 'Saving objects in WS (bUseCBnoConvolution==true)'
-            if (self.is2D == 0):
-		if not self.bIncludingError:
-                	signalCB_ggH.SetNameTitle("ggH","ggH")
-                	signalCB_VBF.SetNameTitle("qqH","qqH")
-                	signalCB_WH.SetNameTitle("WH","WH")
-                	signalCB_ZH.SetNameTitle("ZH","ZH")
-                	signalCB_ttH.SetNameTitle("ttH","ttH")
-                
-                	getattr(w,'import')(signalCB_ggH, ROOT.RooFit.RecycleConflictNodes())
-                	getattr(w,'import')(signalCB_VBF, ROOT.RooFit.RecycleConflictNodes())
-               		getattr(w,'import')(signalCB_WH, ROOT.RooFit.RecycleConflictNodes())
-                	getattr(w,'import')(signalCB_ZH, ROOT.RooFit.RecycleConflictNodes())
-                	getattr(w,'import')(signalCB_ttH, ROOT.RooFit.RecycleConflictNodes())
-		else:
-                	sig_ggHErr.SetNameTitle("ggH","ggH")
-                	sig_VBFErr.SetNameTitle("qqH","qqH")
-                	sig_WHErr.SetNameTitle("WH","WH")
-                	sig_ZHErr.SetNameTitle("ZH","ZH")
-                	sig_ttHErr.SetNameTitle("ttH","ttH")
-                
-                	getattr(w,'import')(sig_ggHErr, ROOT.RooFit.RecycleConflictNodes())
-                	getattr(w,'import')(sig_VBFErr, ROOT.RooFit.RecycleConflictNodes())
-               		getattr(w,'import')(sig_WHErr, ROOT.RooFit.RecycleConflictNodes())
-                	getattr(w,'import')(sig_ZHErr, ROOT.RooFit.RecycleConflictNodes())
-                	getattr(w,'import')(sig_ttHErr, ROOT.RooFit.RecycleConflictNodes())
+
 ###################################
 #### WE USE THIS SNIPPET ##########                                         
 
@@ -1204,101 +1120,7 @@ class datacardClass:
                         getattr(w,'import')(sigTemplatePdf_ggH_syst1Up, ROOT.RooFit.RecycleConflictNodes())
                         getattr(w,'import')(sigTemplatePdf_ggH_syst1Down, ROOT.RooFit.RecycleConflictNodes())
   
-####################################      
-#####################################
-                    
-            if (self.is2D == 2):
-                sigTemplateSDPdf_ggH.SetNameTitle("ggH","ggH")
-                sigTemplateSDPdf_VBF.SetNameTitle("qqH","qqH")
-                sigTemplateSDPdf_WH.SetNameTitle("WH","WH")
-                sigTemplateSDPdf_ZH.SetNameTitle("ZH","ZH")
-                sigTemplateSDPdf_ttH.SetNameTitle("ttH","ttH")
-                
-                getattr(w,'import')(sigTemplateSDPdf_ggH, ROOT.RooFit.RecycleConflictNodes())
-                getattr(w,'import')(sigTemplateSDPdf_VBF, ROOT.RooFit.RecycleConflictNodes())
-                getattr(w,'import')(sigTemplateSDPdf_WH, ROOT.RooFit.RecycleConflictNodes())
-                getattr(w,'import')(sigTemplateSDPdf_ZH, ROOT.RooFit.RecycleConflictNodes())
-                getattr(w,'import')(sigTemplateSDPdf_ttH, ROOT.RooFit.RecycleConflictNodes())
 
-        else:
-                
-            if (self.is2D == 0):
-
-                if self.isHighMass:
-                    sig_ggH_HM.SetNameTitle("ggH","ggH")
-                    sig_VBF_HM.SetNameTitle("qqH","qqH")
-                    sig_WH_HM.SetNameTitle("WH","WH")
-                    sig_ZH_HM.SetNameTitle("ZH","ZH")
-                    sig_ttH_HM.SetNameTitle("ttH","ttH")
-                    
-                    getattr(w,'import')(sig_ggH_HM, ROOT.RooFit.RecycleConflictNodes())
-                    getattr(w,'import')(sig_VBF_HM, ROOT.RooFit.RecycleConflictNodes())
-                    getattr(w,'import')(sig_WH_HM, ROOT.RooFit.RecycleConflictNodes())
-                    getattr(w,'import')(sig_ZH_HM, ROOT.RooFit.RecycleConflictNodes())
-                    getattr(w,'import')(sig_ttH_HM, ROOT.RooFit.RecycleConflictNodes())
-
-                else :
-                    sig_ggH.SetNameTitle("ggH","ggH")
-                    sig_VBF.SetNameTitle("qqH","qqH")
-                    sig_WH.SetNameTitle("WH","WH")
-                    sig_ZH.SetNameTitle("ZH","ZH")
-                    sig_ttH.SetNameTitle("ttH","ttH")
-                    
-                    getattr(w,'import')(sig_ggH, ROOT.RooFit.RecycleConflictNodes())
-                    getattr(w,'import')(sig_VBF, ROOT.RooFit.RecycleConflictNodes())
-                    getattr(w,'import')(sig_WH, ROOT.RooFit.RecycleConflictNodes())
-                    getattr(w,'import')(sig_ZH, ROOT.RooFit.RecycleConflictNodes())
-                    getattr(w,'import')(sig_ttH, ROOT.RooFit.RecycleConflictNodes())
-                    
-            if (self.is2D == 1):
-                sig2d_ggH.SetNameTitle("ggH","ggH")
-                sig2d_VBF.SetNameTitle("qqH","qqH")
-                sig2d_WH.SetNameTitle("WH","WH")
-                sig2d_ZH.SetNameTitle("ZH","ZH")
-                sig2d_ttH.SetNameTitle("ttH","ttH")     
-                
-                getattr(w,'import')(sig2d_ggH,ROOT.RooFit.RecycleConflictNodes())
-                getattr(w,'import')(sig2d_VBF,ROOT.RooFit.RecycleConflictNodes())
-                getattr(w,'import')(sig2d_WH,ROOT.RooFit.RecycleConflictNodes())
-                getattr(w,'import')(sig2d_ZH,ROOT.RooFit.RecycleConflictNodes())
-                getattr(w,'import')(sig2d_ttH,ROOT.RooFit.RecycleConflictNodes())            
-        
-                if(self.isAltSig):
-                    sig2d_ggH_ALT.SetNameTitle("ggH{0}".format(self.appendHypType),"ggH{0}".format(self.appendHypType))
-                    getattr(w,'import')(sig2d_ggH_ALT, ROOT.RooFit.RecycleConflictNodes())
-
-            if (self.is2D == 2): 
-                sigTemplateSDPdf_ggH.SetNameTitle("ggH","ggH")
-                sigTemplateSDPdf_VBF.SetNameTitle("qqH","qqH")
-                sigTemplateSDPdf_WH.SetNameTitle("WH","WH")
-                sigTemplateSDPdf_ZH.SetNameTitle("ZH","ZH")
-                sigTemplateSDPdf_ttH.SetNameTitle("ttH","ttH")
-                
-                getattr(w,'import')(sigTemplateSDPdf_ggH, ROOT.RooFit.RecycleConflictNodes())
-                getattr(w,'import')(sigTemplateSDPdf_VBF, ROOT.RooFit.RecycleConflictNodes())
-                getattr(w,'import')(sigTemplateSDPdf_WH, ROOT.RooFit.RecycleConflictNodes())
-                getattr(w,'import')(sigTemplateSDPdf_ZH, ROOT.RooFit.RecycleConflictNodes())
-                getattr(w,'import')(sigTemplateSDPdf_ttH, ROOT.RooFit.RecycleConflictNodes())
-
- 
-        if (self.is2D == 0):
-		if not self.bIncludingError:
-			bkg_qqzz.SetNameTitle("bkg_qqzz","bkg_qqzz")
-			bkg_ggzz.SetNameTitle("bkg_ggzz","bkg_ggzz")
-			bkg_zjets.SetNameTitle("bkg_zjets","bkg_zjets")
-            		getattr(w,'import')(bkg_qqzz, ROOT.RooFit.RecycleConflictNodes())
-            		getattr(w,'import')(bkg_ggzz, ROOT.RooFit.RecycleConflictNodes())
-            		getattr(w,'import')(bkg_zjets, ROOT.RooFit.RecycleConflictNodes())
-		else:
-			bkg_qqzzErr.SetNameTitle("bkg_qqzz","bkg_qqzz")
-			bkg_ggzzErr.SetNameTitle("bkg_ggzz","bkg_ggzz")
-			bkg_zjetsErr.SetNameTitle("bkg_zjets","bkg_zjets")
-            		getattr(w,'import')(bkg_qqzzErr, ROOT.RooFit.RecycleConflictNodes())
-            		getattr(w,'import')(bkg_ggzzErr, ROOT.RooFit.RecycleConflictNodes())
-            		getattr(w,'import')(bkg_zjetsErr, ROOT.RooFit.RecycleConflictNodes())
-
-##### We use this snippet ##########            
-        if (self.is2D == 1):
             print 'Saving in WS bkgd shapes for superMELA'
             bkg2d_qqzz.SetNameTitle("ORIGbkg2d_qqzz","ORIGbkg2d_qqzz")
             bkg2d_ggzz.SetNameTitle("ORIGbkg2d_ggzz","ORIGbkg2d_ggzz")
@@ -1321,23 +1143,21 @@ class datacardClass:
                 getattr(w,'import')(bkgTemplateMorphPdf_zjets,ROOT.RooFit.RecycleConflictNodes())
             print 'finished to save bkg 2D pdfs in the WS'
 #################
-        if (self.is2D == 2): 
-            bkgTemplateSDPdf_qqzz.SetNameTitle("bkg_qqzz","bkg_qqzz")
-            bkgTemplateSDPdf_ggzz.SetNameTitle("bkg_ggzz","bkg_ggzz")
-            bkgTemplateSDPdf_zjets.SetNameTitle("bkg_zjets","bkg_zjets")
-            getattr(w,'import')(bkgTemplateSDPdf_ggzz, ROOT.RooFit.RecycleConflictNodes())
-            getattr(w,'import')(bkgTemplateSDPdf_qqzz, ROOT.RooFit.RecycleConflictNodes())
-            getattr(w,'import')(bkgTemplateSDPdf_zjets, ROOT.RooFit.RecycleConflictNodes())
+
 
 ### save signal rates        
         getattr(w,'import')(rfvSigRate_ggH, ROOT.RooFit.RecycleConflictNodes())
-        getattr(w,'import')(rfvSigRate_VBF, ROOT.RooFit.RecycleConflictNodes())
-        getattr(w,'import')(rfvSigRate_WH, ROOT.RooFit.RecycleConflictNodes())
-        getattr(w,'import')(rfvSigRate_ZH, ROOT.RooFit.RecycleConflictNodes())
-        getattr(w,'import')(rfvSigRate_ttH, ROOT.RooFit.RecycleConflictNodes())
         
         if(self.isAltSig):
-            rfvSigRate_ggH_ALT=ROOT.RooFormulaVar(rfvSigRate_ggH,"ggH{0}_norm".format(self.appendHypType))
+
+        ### correction to the yield related to interference effects
+        ### (depends on spin hypothesis, only for 4e and 4mu)
+            corrForInterf = self.calcInterfYieldCorr(self.channel,self.spinHyp)
+            corrForInterfName = "sigRateCorr_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+            rrvcorrForInterf = ROOT.RooRealVar(corrForInterfName, corrForInterfName, corrForInterf )    
+        #    rfvSigRate_ggH_ALT=ROOT.RooFormulaVar(rfvSigRate_ggH,"ggH{0}_norm".format(self.appendHypType))
+            rfvSigRate_ggH_ALT=ROOT.RooFormulaVar("ggH{0}_norm".format(self.appendHypType),"@0*@1", ROOT.RooArgList(rfvSigRate_ggH,rrvcorrForInterf))
+            
             print 'Compare signal rates: STD=',rfvSigRate_ggH.getVal(),"   ALT=",rfvSigRate_ggH_ALT.getVal()
             getattr(w,'import')(rfvSigRate_ggH_ALT, ROOT.RooFit.RecycleConflictNodes())
             
@@ -1382,6 +1202,7 @@ class datacardClass:
         fo.close()
 
         if(self.isAltSig):
+            
             if (endsInP5): name_Shape = "{0}/HCG/{1}/hzz4l_{2}S_{3:.0f}TeV{4}.txt".format(self.outputDir,self.mH,self.appendName,self.sqrts,self.appendHypType)
             else: name_Shape = "{0}/HCG/{1:.0f}/hzz4l_{2}S_{3:.0f}TeV{4}.txt".format(self.outputDir,self.mH,self.appendName,self.sqrts,self.appendHypType)
             fo = open( name_Shape, "wb")
@@ -1529,3 +1350,38 @@ class datacardClass:
         
         return counter
 
+    def calcInterfYieldCorr(self, channel, spinHypCode):
+
+        ### the parameters are the fraction of 2e2mu with respect to the total
+        ### we modify the total assuming that the 2e2mu yield is constant
+        ### among different spin hypotheses
+
+        cSM=0.4816
+        cALT=0.4816 ### do nothing by default
+
+        if (spinHypCode == 0) : ### 0+ vs 0-
+            cALT = 0.5236
+        elif (spinHypCode == 1) : ### 0+ vs 2m+
+            cALT = 0.5265 #does not depend on production mechanism
+        elif (spinHypCode == 2) : ### 0+ vs 0h+
+            cALT = 0.5084
+        elif (spinHypCode == 3) : ### 0+ vs 1+
+            cALT = 0.5210
+        elif (spinHypCode == 4) : ### 0+ vs 1-
+            cALT = 0.5068
+        elif (spinHypCode < 0) : ### dummy/default
+            cALT = cSM
+        else :
+            print 'Unrecognized SpinHypothesis=',spinHypCode,'  will not correct total 4e and 4mu yields'
+
+        corrFactor=0.0
+        if( channel == self.ID_2e2mu ):
+            corrFactor=1.0
+        else :
+            corrFactor= ( cSM*(1.0-cALT) ) / (cALT*(1.0-cSM))
+            
+        print 'calcInterfYieldCorr: HypCode=',spinHypCode,'  cALT=',cALT,'  corrFactor=',corrFactor
+        return corrFactor
+
+
+            
