@@ -394,8 +394,14 @@ class datacardClass:
         print 'Value of sig_ggH', sig_ggH.getVal()
         ## --------------------------- SuperMELA 2D PDFS ------------------------- ##
         print 'SuperMELA 2D PDFS'
-###        discVarName = "CMS_zz4l_pseudoKD"
-        discVarName = "CMS_zz4l_graviKD"
+
+        discVarName = "CMS_zz4l_pseudoKD"
+        if(self.spinHyp == 0):
+            discVarName = "CMS_zz4l_pseudoKD"
+        elif (self.spinHyp == 1):
+            discVarName = "CMS_zz4l_graviKD"
+        else :
+            discVarName = "CMS_zz4l_pseudoKD"
 
         D = ROOT.RooRealVar(discVarName,discVarName,0,1)
     
