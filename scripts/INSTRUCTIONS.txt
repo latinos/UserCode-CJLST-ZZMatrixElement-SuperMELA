@@ -1,0 +1,36 @@
+
+************** A: Template generation: ********
+
+1) cd  Combination_Py/AnalysisInputs/SuperMELA/
+2) edit in ConfigSMD.h the path to the CJLST trees
+3) edit in generateTemplates_V3.C and generateTemplates_forCR_V3.C
+the type of spin hyp to test, the path to the templates the sqrts... everything
+in the set of global vars at the beginning of the file. If you are not happy
+with the binning of the templates, change it (just under the global vars).
+4) run the two macros with the command written in the comment at the very top,
+first for 7TeV and then 8TeV: 
+root -q -b ../loadMELA.C generateTemplatesSMD_V3.C+
+root -q -b ../loadMELA.C generateTemplatesSMD_forCR_V3.C+
+
+
+
+********  B : card creation *****************
+1) if they are not yet, copy the two dirs with templates in CreateDatacards/ and go there
+2) make sure to have the latest SM_inputs_7TeV and SM_inputs_8TeV dirs .
+On CVS, they are here:
+http://cmssw.cvs.cern.ch/cgi-bin/cmssw.cgi/UserCode/HZZ4L_Combination/CombinationPy/CreateDatacards/SM_inputs_8TeV/
+3) go in CMSdata/ and run the script create_dataobs.C twice, once for 7TeV
+and another for 8TeV . Of course, make sure that the path to CJLST trees is in synch
+with what used for the templates, and the luminosities are in sync with wehat is in the
+SM_inputs_XTeV
+4) run the datacard making script (example for 8 TeV, to be done also for 7TeV):
+python makeDCsandWSsSMD.py -i SM_inputs_8TeV -a HypTest_smd_8TeV_TEST -b -t templates2D_smd_8TeV_TEST --spinHyp=0 > output_HypTest_smd_7TeV_TEST.txt
+
+for the meaning of the options, refer to the code in makeDCsandWSsSMD.py and datacardClassSMD.py
+5) merge the cards (first the 7TeV and then the 8TeV !!!) :
+./mergeCards.sh cards_HypTest_smd_7TeV_TEST cards_HypTest_smd_8TeV_TEST  126
+
+**** C : sig separation  **********************
+1) copy the dir cards_HypTest_smd_8TeV_TEST  in SignalSeparation/
+2) follow instructions in
+http://cmssw.cvs.cern.ch/cgi-bin/cmssw.cgi/UserCode/HZZ4L_Combination/CombinationPy/SignalSeparation/instructions.txt?view=log

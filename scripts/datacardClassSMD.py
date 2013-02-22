@@ -212,7 +212,8 @@ class datacardClass:
 
         superDiscVarName = "CMS_zz4l_smd"
         SD = ROOT.RooRealVar(superDiscVarName,superDiscVarName,0.0,1.0)
-
+        SD.setBins(bins,"sd200bins")
+        
         self.LUMI = ROOT.RooRealVar("LUMI_{0:.0f}".format(self.sqrts),"LUMI_{0:.0f}".format(self.sqrts),self.lumi)
         self.LUMI.setConstant(True)
     
@@ -393,18 +394,27 @@ class datacardClass:
         sig_ggH.setBufferFraction(0.2)
         print 'Value of sig_ggH', sig_ggH.getVal()
         ## --------------------------- SuperMELA 2D PDFS ------------------------- ##
-        print 'SuperMELA 2D PDFS'
 
-        discVarName = "CMS_zz4l_pseudoKD"
+
+        discVarName = "CMS_zz4l_dummyKD"
         if(self.spinHyp == 0):
             discVarName = "CMS_zz4l_pseudoKD"
         elif (self.spinHyp == 1):
             discVarName = "CMS_zz4l_graviKD"
+        elif (self.spinHyp == 2):
+            discVarName = "CMS_zz4l_p0hplusKD"
+        elif (self.spinHyp == 3):
+            discVarName = "CMS_zz4l_p1plusKD"
+        elif (self.spinHyp == 4):
+            discVarName = "CMS_zz4l_p1minusKD"
+        elif (self.spinHyp == 5):
+            discVarName = "CMS_zz4l_p2qqKD"
         else :
-            discVarName = "CMS_zz4l_pseudoKD"
+            discVarName = "CMS_zz4l_KD"
 
+        print '++++ SuperMELA 2D PDFS using discriminat named :',discVarName,'  +++++'
         D = ROOT.RooRealVar(discVarName,discVarName,0,1)
-    
+        D.setBins(bins,"kd200bins")
         templateSigName = "{0}/Dsignal_{1}.root".format(self.templateDir ,self.appendName)
         
         sigTempFile = ROOT.TFile(templateSigName)
@@ -1015,13 +1025,14 @@ class datacardClass:
             sys.exit()
         
         data_obs_tree = data_obs_file.Get(dataTreeName)
-        data_obs = ROOT.RooDataSet()
-        datasetName = "data_obs_{0}".format(self.appendName)
+        rds_data_obs = ROOT.RooDataSet()
+        datasetName = "dataSet_obs_{0}".format(self.appendName)
         
 ###            data_obs = ROOT.RooDataSet(datasetName,datasetName,data_obs_tree,ROOT.RooArgSet(SD,D))
-        data_obs = ROOT.RooDataSet(datasetName,datasetName,data_obs_tree,ROOT.RooArgSet(CMS_zz4l_mass,SD,D),'CMS_zz4l_mass>106.0&&CMS_zz4l_mass<141.0').reduce(ROOT.RooArgSet(SD,D))
+        rds_data_obs = ROOT.RooDataSet(datasetName,datasetName,data_obs_tree,ROOT.RooArgSet(CMS_zz4l_mass,SD,D),'CMS_zz4l_mass>106.0&&CMS_zz4l_mass<141.0').reduce(ROOT.RooArgSet(SD,D))
 
-
+        datahistName = "data_obs_{0}".format(self.appendName)
+        data_obs = ROOT.RooDataHist(datahistName,datahistName,ROOT.RooArgSet(SD,D),rds_data_obs)
             
         ## --------------------------- WORKSPACE -------------------------- ##
 
@@ -1195,7 +1206,7 @@ class datacardClass:
 
         ## Write Datacards
         fo = open( name_Shape, "wb")
-        self.WriteDatacard(fo,theInputs, name_ShapeWS2, rates, data_obs.numEntries(), self.is2D )
+        self.WriteDatacard(fo,theInputs, name_ShapeWS2, rates, rds_data_obs.numEntries(), self.is2D )
         systematics.WriteSystematics(fo, theInputs,)
         systematics.WriteShapeSystematics(fo,theInputs)
         fo.close()
@@ -1205,7 +1216,7 @@ class datacardClass:
             if (endsInP5): name_Shape = "{0}/HCG/{1}/hzz4l_{2}S_{3:.0f}TeV{4}.txt".format(self.outputDir,self.mH,self.appendName,self.sqrts,self.appendHypType)
             else: name_Shape = "{0}/HCG/{1:.0f}/hzz4l_{2}S_{3:.0f}TeV{4}.txt".format(self.outputDir,self.mH,self.appendName,self.sqrts,self.appendHypType)
             fo = open( name_Shape, "wb")
-            self.WriteDatacard(fo,theInputs, name_ShapeWS2, rates, data_obs.numEntries(), self.is2D,True,self.appendHypType )
+            self.WriteDatacard(fo,theInputs, name_ShapeWS2, rates, rds_data_obs.numEntries(), self.is2D,True,self.appendHypType )
             systematics.WriteSystematics(fo, theInputs,self.isAltSig)
             systematics.WriteShapeSystematics(fo,theInputs)
             fo.close()
@@ -1215,7 +1226,7 @@ class datacardClass:
         else: name_Shape = "{0}/HCG_XSxBR/{2:.0f}/hzz4l_{1}S_{3:.0f}TeV.txt".format(self.outputDir,self.appendName,self.mH,self.sqrts)
             
         fo = open( name_Shape, "wb" )
-        self.WriteDatacard(fo, theInputs,name_ShapeWS2, rates, data_obs.numEntries(), self.is2D )
+        self.WriteDatacard(fo, theInputs,name_ShapeWS2, rates, rds_data_obs.numEntries(), self.is2D )
         systematics_forXSxBR.WriteSystematics(fo, theInputs)
         systematics_forXSxBR.WriteShapeSystematics(fo,theInputs)
         fo.close()
@@ -1224,7 +1235,7 @@ class datacardClass:
             if (endsInP5): name_Shape = "{0}/HCG_XSxBR/{2}/hzz4l_{1}S_{3:.0f}TeV{4}.txt".format(self.outputDir,self.appendName,self.mH,self.sqrts,self.appendHypType)	
             else: name_Shape = "{0}/HCG_XSxBR/{2:.0f}/hzz4l_{1}S_{3:.0f}TeV{4}.txt".format(self.outputDir,self.appendName,self.mH,self.sqrts,self.appendHypType)
             fo = open( name_Shape, "wb")
-            self.WriteDatacard(fo,theInputs,name_ShapeWS2,rates,data_obs.numEntries(),self.is2D,True,self.appendHypType )
+            self.WriteDatacard(fo,theInputs,name_ShapeWS2,rates,rds_data_obs.numEntries(),self.is2D,True,self.appendHypType )
             systematics.WriteSystematics(fo, theInputs,self.isAltSig)
             systematics.WriteShapeSystematics(fo,theInputs)
             fo.close()
@@ -1314,7 +1325,9 @@ class datacardClass:
         file.write("rate ")
         ### correction to the yield related to interference effects
         ### (depends on spin hypothesis, only for 4e and 4mu)
-        corrForInterf = self.calcInterfYieldCorr(self.channel,self.spinHyp)
+   ##     corrForInterf = self.calcInterfYieldCorr(self.channel,self.spinHyp)
+   ##     corrForAccept = self.calcAcceptYieldCorr(self.channel,self.spinHyp)
+        corrForInterfAndAccept = self.calcTotalYieldCorr(self.channel,self.spinHyp)
    ###     print 'Corr for interference is ',corrForInterf
         ind=0
         for chan in channelList:
@@ -1322,7 +1335,8 @@ class datacardClass:
       ###          print 'ChannelName2D=',channelName2D[ind]
                 if ( channelName2D[ind]=="ggH_ALT") :
    ###                 print 'I will write in the card a factor ',theRates[chan]*corrForInterf
-                    file.write("{0:.4f} ".format(theRates[chan]*corrForInterf))
+###                    file.write("{0:.4f} ".format(theRates[chan]*corrForInterf*corrForAccept))
+                    file.write("{0:.4f} ".format(theRates[chan]*corrForInterfAndAccept))
                 else :
                     file.write("{0:.4f} ".format(theRates[chan]))
             ind += 1
@@ -1366,7 +1380,7 @@ class datacardClass:
 
         if (spinHypCode == 0) : ### 0+ vs 0-
             cALT = 0.5236
-        elif (spinHypCode == 1) : ### 0+ vs 2m+
+        elif (spinHypCode == 1 or spinHypCode == 5) : ### 0+ vs 2m+ from gg or qq
             cALT = 0.5265 #does not depend on production mechanism
         elif (spinHypCode == 2) : ### 0+ vs 0h+
             cALT = 0.5084
@@ -1387,6 +1401,172 @@ class datacardClass:
             
         print 'calcInterfYieldCorr: HypCode=',spinHypCode,'  cALT=',cALT,'  corrFactor=',corrFactor
         return corrFactor
+
+
+            
+
+    def calcAcceptYieldCorr(self, channel, spinHypCode):
+
+        ### the parameters are the fraction of 2e2mu with respect to the total
+        ### we modify the total assuming that the 2e2mu yield is constant
+        ### among different spin hypotheses
+
+
+        alpha=1.0 ### ratio of generated events w.r.t. SM 0+ sample
+        r=1.0 ### ratio of reconstructed events w.r.t. SM0+
+
+        if (spinHypCode == 0) : ### 0+ vs 0-
+            if( channel == self.ID_2e2mu ):
+                alpha=1.0
+                r=1.0
+            elif ( channel == self.ID_4mu ):
+                alpha=1.0
+                r=1.0
+            else :  #( channel == self.ID_4e )
+                alpha=1.0
+                r=1.0
+        elif (spinHypCode == 1) : ### gg->0+ vs 2m+
+            if( channel == self.ID_2e2mu ):
+                alpha=1.0
+                r=1.0
+            elif ( channel == self.ID_4mu ):
+                alpha=1.0
+                r=1.0
+            else :  #( channel == self.ID_4e )
+                alpha=1.0
+                r=1.0
+        elif (spinHypCode == 2) : ###0+ vs 0h+
+            if( channel == self.ID_2e2mu ):
+                alpha=1.0
+                r=1.0
+            elif ( channel == self.ID_4mu ):
+                alpha=1.0
+                r=1.0
+            else :  #( channel == self.ID_4e )
+                alpha=1.0
+                r=1.0
+        elif (spinHypCode == 3) : ### 0+ vs 1+
+            if( channel == self.ID_2e2mu ):
+                alpha=1.0
+                r=1.0
+            elif ( channel == self.ID_4mu ):
+                alpha=1.0
+                r=1.0
+            else :  #( channel == self.ID_4e )
+                alpha=1.0
+                r=1.0
+        elif (spinHypCode == 4) : ### 0+ vs 1-
+            if( channel == self.ID_2e2mu ):
+                alpha=1.0
+                r=1.0
+            elif ( channel == self.ID_4mu ):
+                alpha=1.0
+                r=1.0
+            else :  #( channel == self.ID_4e )
+                alpha=1.0
+                r=1.0
+        elif (spinHypCode == 5) : ### qq->0+ vs 2m+
+            if( channel == self.ID_2e2mu ):
+                alpha=1.0
+                r=1.0
+            elif ( channel == self.ID_4mu ):
+                alpha=1.0
+                r=1.0
+            else :  #( channel == self.ID_4e )
+                alpha=1.0
+                r=1.0
+        elif (spinHypCode < 0) : ### do nothing
+            if( channel == self.ID_2e2mu ):
+                alpha=1.0
+                r=1.0
+            elif ( channel == self.ID_4mu ):
+                alpha=1.0
+                r=1.0
+            else :  #( channel == self.ID_4e )
+                alpha=1.0
+                r=1.0
+        else :
+            print 'Unrecognized SpinHypothesis=',spinHypCode,'  will not correct total yields because of acceptance'
+
+        corrFactor=0.0
+        if( channel == self.ID_2e2mu ):
+            corrFactor=1.0
+        else :
+            corrFactor= r / alpha
+            
+        print 'calcAcceptYieldCorr: HypCode=',spinHypCode,'  alpha=',alpha,' r=',r,'  corrFactor=',corrFactor
+        return corrFactor
+
+
+
+    def calcTotalYieldCorr(self, channel, spinHypCode):
+
+        ### the parameters are the fraction of 2e2mu with respect to the total
+        ### we modify the total assuming that the 2e2mu yield is constant
+        ### among different spin hypotheses
+
+
+
+        r=1.0 ### correction calculated by Andrew, embeds both Interf and Accept
+
+        if (spinHypCode == 0) : ### 0+ vs 0-
+            if( channel == self.ID_2e2mu ):
+                r=1.12188
+            elif ( channel == self.ID_4mu ):
+                r= 0.912885
+            else :  #( channel == self.ID_4e )
+                r= 0.858691
+        elif (spinHypCode == 1) : ### gg->0+ vs 2m+
+            if( channel == self.ID_2e2mu ):
+                r= 1.12826
+            elif ( channel == self.ID_4mu ):
+                r=0.900717
+            else :  #( channel == self.ID_4e )
+                r= 0.865112
+        elif (spinHypCode == 2) : ###0+ vs 0h+
+            if( channel == self.ID_2e2mu ):
+                r=1.06477
+            elif ( channel == self.ID_4mu ):
+                r= 0.941477
+            else :  #( channel == self.ID_4e )
+                r= 0.947087
+        elif (spinHypCode == 3) : ### 0+ vs 1+
+            if( channel == self.ID_2e2mu ):
+                r= 1.07114
+            elif ( channel == self.ID_4mu ):
+                r=0.968514
+            else :  #( channel == self.ID_4e )
+                r= 0.882397
+        elif (spinHypCode == 4) : ### 0+ vs 1-
+            if( channel == self.ID_2e2mu ):
+                r=1.1036
+            elif ( channel == self.ID_4mu ):
+                r=0.939779
+            else :  #( channel == self.ID_4e )
+                r=0.854791
+        elif (spinHypCode == 5) : ### qq->0+ vs 2m+
+            if( channel == self.ID_2e2mu ):
+                r=1.1417
+            elif ( channel == self.ID_4mu ):
+                r= 0.884544
+            else :  #( channel == self.ID_4e )
+                r= 0.861437
+        elif (spinHypCode < 0) : ### do nothing
+            if( channel == self.ID_2e2mu ):
+                alpha=1.0
+                r=1.0
+            elif ( channel == self.ID_4mu ):
+                alpha=1.0
+                r=1.0
+            else :  #( channel == self.ID_4e )
+                alpha=1.0
+                r=1.0
+        else :
+            print 'Unrecognized SpinHypothesis=',spinHypCode,'  will not correct total yields because of acceptance'
+
+            
+        print 'calcTotalYieldCorr: ',r
+        return r 
 
 
             
