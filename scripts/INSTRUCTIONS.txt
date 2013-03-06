@@ -38,6 +38,12 @@ systematic CMS_zz4l_sigma False
 systematic CMS_zz4l_n False
 systematic CMS_zz4l_gamma False
 
+The list of signal channels should include only one entry "all"
+that sums over all the prod channels (ggH, qqH, ZH, etc etc).
+
+## Channels to include in cards ##
+channels all qqZZ ggZZ zjets
+
 
 3) go in CMSdata/ and run the script create_dataobs.C twice, once for 7TeV
 and another for 8TeV . Of course, make sure that the path to CJLST trees is in synch
