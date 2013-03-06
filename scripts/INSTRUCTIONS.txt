@@ -19,6 +19,26 @@ root -q -b ../loadMELA.C generateTemplatesSMD_forCR_V3.C+
 2) make sure to have the latest SM_inputs_7TeV and SM_inputs_8TeV dirs .
 On CVS, they are here:
 http://cmssw.cvs.cern.ch/cgi-bin/cmssw.cgi/UserCode/HZZ4L_Combination/CombinationPy/CreateDatacards/SM_inputs_8TeV/
+
+You must set the correct flags and parameters in the default 
+input cards in SM_inputs_8TeV for creating cards and ws suitable 
+for hypothesis testing ! In particular, in order 
+to properly activate the shape systematics, 
+the input cards should have these settings:
+
+### for hypothesis testing ###
+doHypTest True
+#altHypLabel _ALT
+systematic CMS_zz4l_bkgMELA True
+systematic CMS_zz4l_sigMELA True
+systematic CMS_zz4l_mean False
+systematic CMS_zz4l_sigma False
+systematic CMS_zz4l_mean False
+systematic CMS_zz4l_sigma False
+systematic CMS_zz4l_n False
+systematic CMS_zz4l_gamma False
+
+
 3) go in CMSdata/ and run the script create_dataobs.C twice, once for 7TeV
 and another for 8TeV . Of course, make sure that the path to CJLST trees is in synch
 with what used for the templates, and the luminosities are in sync with wehat is in the
