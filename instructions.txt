@@ -1,3 +1,4 @@
+Most up-to-date version of instructions below --> ######...####
 
 Required packages and installation:
 
@@ -140,3 +141,97 @@ has to be worked out in the future.
 ******************************
 4) run the signal separation
 see UserCode/HZZ4L_Combination/CombinationPy/SignalSeparation/instructions.txt
+
+
+
+
+
+
+
+
+
+
+##############################################################################
+!!!!!!!!!!!
+Checkout packages needed:
+To get CMSSW_6_1_1
+a) SCRAM_ARCH=slc5_amd64_gcc472
+b) scram p CMSSW_6_1_1
+c) cd CMSSW_6_1_1/src
+d) cmsenv
+
+HiggsAnalysis/CombinedLimit
+From src directory do:
+a) cvs co -r V03-01-00 HiggsAnalysis/CombinedLimit/
+
+UserCode/HZZ4L_Combination/CombinationPy
+From src directory do:
+a) cvs co -d HiggsAnalysis/CombinationPy UserCode/HZZ4L_Combination/CombinationPy/
+
+
+UserCode/CJLST/ZZMatrixElement/SuperMELA/
+From src directory do:
+a) cvs co -d CJLST/SuperMELA UserCode/CJLST/ZZMatrixElement/SuperMELA/
+
+!!!!!!!!!!!!
+CompileCode:
+From src directory do:
+a) scram b -j 4
+b) cd HiggsAnalysis/CombinationPy/CreateDatacards
+c) ./buildPackage.sh
+
+!!!!!!!!!!!
+Move required scripts to CombinationPy/CreateDatacards
+From src directory do:
+a) cp CJLST/SuperMELA/scripts/*SMD.py HiggsAnalysis/CombinationPy/CreateDatacards/
+b) cp CJLST/SuperMELA/scripts/run.sh HiggsAnalysis/CombinationPy/CreateDatacards/
+
+
+!!!!!!!!!!!!
+Make a set of Templates:
+From HiggsAnalysis/CombinationPy/AnalysisInputs/SuperMELA do:
+a) mkdir ../../CreateDatacards/templates2D_0-_7TeV/
+b) mkdir ../../CreateDatacards/templates2D_0-_8TeV/
+Edit inputs in ConfigSMD.h
+c) root -l -b -q "generateTemplatesSMD.C+(3,\"0-\")"
+First is model index
+Second is model label used in tempaltes2D_*_?TeV
+d) root -l -b -q "generateTemplatesSMD_forCR.C+(3,\"0-\")"
+
+!!!!!!!!!!!!
+Modify input cards:
+
+You must set the correct flags and parameters in the default input cards in SM_inputs_?TeV 
+for creating cards and ws suitable for hypothesis testing ! In particular, in order 
+to properly activate the shape systematics, the input cards should have these settings:
+
+### for hypothesis testing ###
+doHypTest True
+#altHypLabel _ALT
+systematic CMS_zz4l_bkgMELA True
+systematic CMS_zz4l_sigMELA True
+systematic CMS_zz4l_mean False
+systematic CMS_zz4l_sigma False
+systematic CMS_zz4l_mean False
+systematic CMS_zz4l_sigma False
+systematic CMS_zz4l_n False
+systematic CMS_zz4l_gamma False
+
+
+!!!!!!!!!!!!
+Create observed data trees:
+Use script:
+CJLST/SuperMELA/scripts/create_dataobs.C
+
+!!!!!!!!!!!!
+Make Datacards & run Combine:
+From HiggsAnalysis/CombinationPy/CreateDatacards do:
+Edit run.sh for mass you would like to run on
+Edit the files in HiggsAnalysis.CombinationPy/SignalSeparation
+a) ./run.sh 0- 0 0  (for input options use: ./run.sh)
+First is text label used in templates2D_*_?TeV
+Second is model index... different than model index for generateTemaplates
+Third is 0 for mu=1 and 1 for prefit mu
+
+This script will create the datacards for 125 & 126
+Then it will plot the results and print the qvalue, cls, and information about the toys.

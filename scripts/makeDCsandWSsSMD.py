@@ -26,7 +26,7 @@ def parseOptions():
     parser.add_option('-t', '--templateDir', type='string', dest='templateDir', default="templates2D" ,help='directory with 2D template histos')
     parser.add_option('-e', '--massError',   dest='massError',       type='int',    default=0,     help='massError (default:0)')
     parser.add_option('-u', '--mekd',   dest='mekd',       type='int',    default=0,     help='mekd double gaussian inputs (default:0)')
-    parser.add_option('--spinHypCode', dest='spinCode' , type='int', default=-1, help='code for identifying the spin hypothesis test: 0=0+/0-, 1=0+/2m+, 2=0+/0h+, 3=0+/1+, 4=0+/1-, 5=0+/qq2+ (default=-1, dummy, no effect)')
+    parser.add_option('--spinHypCode', dest='spinCode' , type='int', default=-1, help='code for identifying the spin hypothesis test: 0=0+/0-, 1=0+/2m+, 2=0+/0h+, 3=0+/1+, 4=0+/1- (default=-1, dummy, no effect)')
     
     # store options and arguments as global variables
     global opt, args
