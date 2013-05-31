@@ -103,9 +103,9 @@ class datacardClass:
         
         myCSWrhf = HiggsCSandWidth()
         
-        histXsBr = ROOT.TH1F("hsmxsbr_{0}_{1}".format(procName,channelName),"", 1781, 109.75, 1000)
+        histXsBr = ROOT.TH1F("hsmxsbr_{0}_{1}".format(procName,channelName),"", 8905, 109.55, 1000.05)
         
-        for i in range(1,1782):
+        for i in range(1,8906):
             
             mHVal = histXsBr.GetBinCenter(i)
             BR = 0.0 
@@ -235,15 +235,16 @@ class datacardClass:
 
         ## -------------------------- SIGNAL SHAPE ----------------------------------- ##
     
-        ##bins = 1000
-        bins = 200
-        
+        bins = 1000
+        ##bins = 200
+        ##ufbins = 25
 
         CMS_zz4l_mass = ROOT.RooRealVar("CMS_zz4l_mass","CMS_zz4l_mass",self.low_M,self.high_M)
         CMS_zz4l_mass.setBins(bins,"fft") 
 
         superDiscVarName = "CMS_zz4l_smd"
-        SD = ROOT.RooRealVar(superDiscVarName,superDiscVarName,0.0,1.0)
+        ##SD = ROOT.RooRealVar(superDiscVarName,superDiscVarName,0.0,1.0)
+        ##SD.setBins(ufbins,"ufbins")
 
         self.LUMI = ROOT.RooRealVar("LUMI_{0:.0f}".format(self.sqrts),"LUMI_{0:.0f}".format(self.sqrts),self.lumi)
         self.LUMI.setConstant(True)
@@ -444,7 +445,8 @@ class datacardClass:
             discVarName = "CMS_zz4l_pseudoKD"
 
         print '++++ SuperMELA 2D PDFS using discriminat named :',discVarName,'  +++++'
-        D = ROOT.RooRealVar(discVarName,discVarName,0,1)
+        ##D = ROOT.RooRealVar(discVarName,discVarName,0.0,1.0)
+        ##D.setBins(ufbins,"ufbins")
     
         templateSigName = "{0}/Dsignal_{1}.root".format(self.templateDir ,self.appendName)
         
@@ -454,8 +456,20 @@ class datacardClass:
         sigTemplate_syst1Down = sigTempFile.Get("h_superDpsD_LeptScaleDown")
         sigTemplate_syst2Up = sigTempFile.Get("h_superDpsD_LeptSmearUp")
         sigTemplate_syst2Down = sigTempFile.Get("h_superDpsD_LeptSmearDown")
-            
-        TemplateName = "sigTempDataHist_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+
+	dBinsY = sigTemplate.GetYaxis().GetNbins()
+	dLowY = sigTemplate.GetYaxis().GetXmin()
+	dHighY = sigTemplate.GetYaxis().GetXmax()        
+    	D = ROOT.RooRealVar(discVarName,discVarName,dLowY,dHighY)
+	D.setBins(dBinsY)
+	
+	dBinsX = sigTemplate.GetXaxis().GetNbins()
+	dLowX = sigTemplate.GetXaxis().GetXmin()
+        dHighX = sigTemplate.GetXaxis().GetXmax()
+	SD = ROOT.RooRealVar(superDiscVarName,superDiscVarName,dLowX,dHighX)
+	SD.setBins(dBinsX)
+
+	TemplateName = "sigTempDataHist_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         sigTempDataHist = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(SD,D),sigTemplate)
         TemplateName = "sigTempDataHist_syst1Up_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         sigTempDataHist_syst1Up = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(SD,D),sigTemplate_syst1Up)
@@ -559,11 +573,11 @@ class datacardClass:
             morphVarListSig1.add(syst2MorphSig)
             
         TemplateName = "sigTemplateMorphPdf_ggH_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        sigTemplateMorphPdf_ggH = ROOT.FastVerticalInterpHistPdf2D(TemplateName,TemplateName,SD,D,false,funcList1_ggH,morphVarListSig1,1.0,1)
+        sigTemplateMorphPdf_ggH = ROOT.FastVerticalInterpHistPdf2D(TemplateName,TemplateName,SD,D,False,funcList1_ggH,morphVarListSig1,1.0,1)
         
         if(self.isAltSig):
             TemplateName = "sigTemplateMorphPdf_ggH{2}_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts,self.appendHypType)
-            sigTemplateMorphPdf_ggH_ALT = ROOT.FastVerticalInterpHistPdf2D(TemplateName,TemplateName,SD,D,false,funcList1_ggH_ALT,morphVarListSig1,1.0,1)
+            sigTemplateMorphPdf_ggH_ALT = ROOT.FastVerticalInterpHistPdf2D(TemplateName,TemplateName,SD,D,False,funcList1_ggH_ALT,morphVarListSig1,1.0,1)
 
 
         sigCB2d_ggH =signalCB_ggH.Clone("sigCB2d_ggH")
@@ -820,13 +834,13 @@ class datacardClass:
 
 
         TemplateName = "bkgTemplateMorphPdf_qqzz_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)    
-        bkgTemplateMorphPdf_qqzz = ROOT.FastVerticalInterpHistPdf2D(TemplateName,TemplateName,SD,D,false,ROOT.RooArgList(bkgTemplatePdf_qqzz),ROOT.RooArgList(),1.0,1)
+        bkgTemplateMorphPdf_qqzz = ROOT.FastVerticalInterpHistPdf2D(TemplateName,TemplateName,SD,D,False,ROOT.RooArgList(bkgTemplatePdf_qqzz),ROOT.RooArgList(),1.0,1)
         TemplateName = "bkgTemplateMorphPdf_ggzz_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)    
-        bkgTemplateMorphPdf_ggzz = ROOT.FastVerticalInterpHistPdf2D(TemplateName,TemplateName,SD,D,false,ROOT.RooArgList(bkgTemplatePdf_ggzz),ROOT.RooArgList(),1.0,1)
+        bkgTemplateMorphPdf_ggzz = ROOT.FastVerticalInterpHistPdf2D(TemplateName,TemplateName,SD,D,False,ROOT.RooArgList(bkgTemplatePdf_ggzz),ROOT.RooArgList(),1.0,1)
 
         print 'MORPHING the ZJETS BKG'
         TemplateName = "bkgTemplateMorphPdf_zjets_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)    
-        bkgTemplateMorphPdf_zjets = ROOT.FastVerticalInterpHistPdf2D(TemplateName,TemplateName,SD,D,false,funcList_zjets,morphVarListBkg,1.0,1)
+        bkgTemplateMorphPdf_zjets = ROOT.FastVerticalInterpHistPdf2D(TemplateName,TemplateName,SD,D,False,funcList_zjets,morphVarListBkg,1.0,1)
 
         print 'dummy cloning'
         bkg2d_qqzz =bkg_qqzz.Clone("bkg2d_qqzz")
