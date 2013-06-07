@@ -15,9 +15,9 @@ if [ $# -lt 3 ]
     exit
 fi
 
-python makeDCsandWSsSMD.py -i SM_inputs_7TeV_MorAppr -a $1_7TeV -b -t templates2D_$1_7TeV --spinHyp=$2 > $1_7TeV.txt
+python makeDCsandWSsSMD.py -i SM_inputs_7TeV -a $1_7TeV -b -t templates2D_$1_vA_7TeV --spinHyp=$2 > $1_7TeV.txt
 
-python makeDCsandWSsSMD.py -i SM_inputs_8TeV_MorAppr -a $1_8TeV -b -t templates2D_$1_8TeV --spinHyp=$2 > $1_8TeV.txt
+python makeDCsandWSsSMD.py -i SM_inputs_8TeV -a $1_8TeV -b -t templates2D_$1_vA_8TeV --spinHyp=$2 > $1_8TeV.txt
 
 cd cards_$1_8TeV/HCG/126/
 cp ../../../cards_$1_7TeV/HCG/126/* .

@@ -461,13 +461,13 @@ class datacardClass:
 	dLowY = sigTemplate.GetYaxis().GetXmin()
 	dHighY = sigTemplate.GetYaxis().GetXmax()        
     	D = ROOT.RooRealVar(discVarName,discVarName,dLowY,dHighY)
-	D.setBins(dBinsY)
+	#D.setBins(dBinsY)
 	
 	dBinsX = sigTemplate.GetXaxis().GetNbins()
 	dLowX = sigTemplate.GetXaxis().GetXmin()
         dHighX = sigTemplate.GetXaxis().GetXmax()
 	SD = ROOT.RooRealVar(superDiscVarName,superDiscVarName,dLowX,dHighX)
-	SD.setBins(dBinsX)
+	#SD.setBins(dBinsX)
 
 	TemplateName = "sigTempDataHist_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         sigTempDataHist = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(SD,D),sigTemplate)
@@ -503,6 +503,9 @@ class datacardClass:
             sigTemplate_syst1Down = sigTempFile.Get("h_superDpsD_LeptScaleDown")
             sigTemplate_syst2Up = sigTempFile.Get("h_superDpsD_LeptSmearUp")
             sigTemplate_syst2Down = sigTempFile.Get("h_superDpsD_LeptSmearDown")
+
+            #D.setBins(dBinsY)
+            #SD.setBins(dBinsX)
             
             TemplateName = "sigTempDataHist_{0:.0f}_{1:.0f}{2}".format(self.channel,self.sqrts, self.appendHypType)
             sigTempDataHist_ALT = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(SD,D),sigTemplate)
@@ -595,6 +598,9 @@ class datacardClass:
 ###        sigTemplateSD = sigTempSDFile.Get("h_superD_mod_rndm")
 ###        sigTemplateSD = sigTempSDFile.Get("h_superDfromProjX") 
         print 'SuperMELA 1D template has mean = ',sigTemplateSD.GetMean()
+
+        #D.setBins(dBinsY)
+        #SD.setBins(dBinsX)
         
         TemplateSDName = "sigTempSDDataHist_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         sigTempSDDataHist = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(SD),sigTemplateSD)
@@ -775,6 +781,9 @@ class datacardClass:
         templateBkgName = "{0}/Dbackground_qqZZ_{1}.root".format(self.templateDir ,self.appendName)
         bkgTempFile = ROOT.TFile(templateBkgName)
         bkgTemplate = bkgTempFile.Get("h_superDpsD")
+
+        #D.setBins(dBinsY)
+        #SD.setBins(dBinsX)
         
         TemplateName = "bkgTempDataHist_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         bkgTempDataHist = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(SD,D),bkgTemplate)
@@ -784,6 +793,10 @@ class datacardClass:
         templateggBkgName = "{0}/Dbackground_ggZZ_{1}.root".format(self.templateDir ,self.appendName)
         ggbkgTempFile = ROOT.TFile(templateggBkgName)
         ggbkgTemplate = ggbkgTempFile.Get("h_superDpsD")
+
+        #D.setBins(dBinsY)
+        #SD.setBins(dBinsX)
+            
         TemplateName = "ggbkgTempDataHist_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         ggbkgTempDataHist = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(SD,D),ggbkgTemplate)
 
@@ -796,25 +809,19 @@ class datacardClass:
         templateBkgName = "{0}/Dbackground_ZJetsCR_AllChans.root".format(self.templateDir)
         zjetsTempFile = ROOT.TFile(templateBkgName)
         zjetsTemplate = zjetsTempFile.Get("h_superDpsD")
-        TemplateName = "zjetsTempDataHist_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        zjetsTempDataHist = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(SD,D),zjetsTemplate)
 
-
-
+        #D.setBins(dBinsY)
+        #SD.setBins(dBinsX)
+        
         TemplateName = "bkgTemplatePdf_zjets_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         bkgTemplatePdf_zjets = ROOT.RooHistPdf(TemplateName,TemplateName,ROOT.RooArgSet(SD,D),bkgTempDataHist)
-#        bkgTemplatePdf_zjets = ROOT.RooHistPdf(TemplateName,TemplateName,ROOT.RooArgSet(SD,D),zjetsTempDataHist)
         TemplateName = "bkgTemplatePdf_zjets_Up_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        bkgTemplatePdf_zjets_Up = ROOT.RooHistPdf(TemplateName,TemplateName,ROOT.RooArgSet(SD,D),bkgTempDataHist_zjetsUp)
+        bkgTemplatePdf_zjets_Up = ROOT.RooHistPdf(TemplateName,TemplateName,ROOT.RooArgSet(SD,D),bkgTempDataHist)
 
-
-        zjetsTemplateDown = self.reflectSystematics(bkgTemplate,zjetsTemplate)
-        #zjetsTemplateDown.setName("zjetsTemplateDown_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts))
-        #zjetsTemplateDown.setTitle("zjetsTemplateDown_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts))
         TemplateName = "zjetsTempDataHistDown_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        zjetsTempDataHistDown = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(SD,D),zjetsTemplateDown)
+        zjetsTempDataHistDown = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(SD,D),zjetsTemplate)
         TemplateName = "bkgTemplatePdf_zjets_Down_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        bkgTemplatePdf_zjets_Down = ROOT.RooHistPdf(TemplateName,TemplateName,ROOT.RooArgSet(SD,D),bkgTempDataHist)
+        bkgTemplatePdf_zjets_Down = ROOT.RooHistPdf(TemplateName,TemplateName,ROOT.RooArgSet(SD,D),zjetsTempDataHistDown)
                 
 
         funcList_zjets = ROOT.RooArgList()  
@@ -857,7 +864,11 @@ class datacardClass:
         bkgTempSDFile = ROOT.TFile(templateSDBkgName)
         bkgTemplateSD = bkgTempSDFile.Get("h_superD")
 ###        bkgTemplateSD = bkgTempSDFile.Get("h_superD_mod_rndm") 
-###        bkgTemplateSD = bkgTempSDFile.Get("h_superDfromProjX") 
+###        bkgTemplateSD = bkgTempSDFile.Get("h_superDfromProjX")
+
+        #D.setBins(dBinsY)
+        #SD.setBins(dBinsX)
+            
         TemplateSDName = "bkgTempSDDataHist_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)    
         bkgTempSDDataHist = ROOT.RooDataHist(TemplateSDName,TemplateSDName,ROOT.RooArgList(SD),bkgTemplateSD)
         
@@ -1141,7 +1152,8 @@ class datacardClass:
                 w.importClassCode(RooTwoETwoMuMassRes.Class(),True)
             
                 
-                
+        #D.setBins(dBinsY)
+        #SD.setBins(dBinsX)  
         getattr(w,'import')(data_obs,ROOT.RooFit.Rename("data_obs")) ### Should this be renamed?
     
         if(self.bUseCBnoConvolution) :
@@ -1200,7 +1212,10 @@ class datacardClass:
             rfvSigRate_ggH_ALT=ROOT.RooFormulaVar(rfvSigRate_ggH,"ggH{0}_norm".format(self.appendHypType))
             print 'Compare signal rates: STD=',rfvSigRate_ggH.getVal(),"   ALT=",rfvSigRate_ggH_ALT.getVal()
             getattr(w,'import')(rfvSigRate_ggH_ALT, ROOT.RooFit.RecycleConflictNodes())
-            
+
+        #D.setBins(dBinsY)
+        #SD.setBins(dBinsX)
+        
         w.writeToFile(name_ShapeWS)
         w.writeToFile(name_ShapeWSXSBR)
         
