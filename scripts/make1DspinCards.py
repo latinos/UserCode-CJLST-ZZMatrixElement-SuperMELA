@@ -29,7 +29,7 @@ def parseOptions():
 
     parser.add_option('-t', '--templateDir', type='string', dest='templateDir', default="templates2D" ,help="directory with 1D template histos")
     parser.add_option('-d', '--CardDir', type='string',dest='CardDir', default="cards_0-_8TeV/HCG/126/", help="directory with 2D cards and workspaces")
-    parser.add_option('-o', '--OutDir', type='string', dest='OutDir', default='templates1D', help="directory to write 1D cards")
+    parser.add_option('-o', '--OutDir', type='string', dest='OutDir', default='cards_1D', help="directory to write 1D cards")
     parser.add_option('-l', '--Lumi', type='string', dest='lumi',default="19.63", help="lumi")
     parser.add_option('-e', '--Energy', type='string', dest='tev',default="8", help="sqrt(s) TeV")
     parser.add_option('-m', '--mH', type='float', dest='mH', default=126, help="CMS_zz4l_mass value")

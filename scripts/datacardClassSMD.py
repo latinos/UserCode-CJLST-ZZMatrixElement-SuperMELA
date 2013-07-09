@@ -114,7 +114,15 @@ class datacardClass:
             else:
                 BR = myCSWrhf.HiggsBR(12,mHVal)
 
+            if (signalProc == 3 or signalProc == 4 or signalProc == 5):
+                #overwrite BR if VH,ttH sample
+                #these samples have inclusive Z decay
+                BR = myCSWrhf.HiggsBR(11,mHVal)
+
             if (signalProc==0):
+                print "This option is outdated!"
+                print "If you see this you have reached a bug!"
+                print "This was made obsolete by parameterizing the efficiency by production process"
                 totXs=0
                 for ch in range(1,6):
                     totXs+=myCSWrhf.HiggsCS(ch, mHVal, self.sqrts)
@@ -193,16 +201,25 @@ class datacardClass:
 
             
         if(DEBUG): print "width: ",self.widthHVal
-        
-        self.windowVal = max( self.widthHVal, 1.0)
+        self.windowVal = max(self.widthHVal, 1.0)
         lowside = 100.0
+        highside = 1000.0
+        
         if (self.mH >= 275):
             lowside = 180.0
-        else:
-            lowside = 100.0
+            highside = 650.0
+        if (self.mH >= 350):
+            lowside = 200.0
+            highside = 900.0
+        if (self.mH >= 500):
+            lowside = 250.0
+            highside = 1000.0
+        if (self.mH >= 700):
+            lowside = 350.0
+            highside = 1400.0
         
         self.low_M = max( (self.mH - 20.*self.windowVal), lowside)
-        self.high_M = min( (self.mH + 15.*self.windowVal), 1000)
+        self.high_M = min( (self.mH + 15.*self.windowVal), highside)
 
         #self.low_M = 100.0
         #self.high_M = 800.0
@@ -240,9 +257,11 @@ class datacardClass:
         ##ufbins = 25
 
         CMS_zz4l_mass = ROOT.RooRealVar("CMS_zz4l_mass","CMS_zz4l_mass",self.low_M,self.high_M)
-        CMS_zz4l_mass.setBins(bins,"fft") 
+        CMS_zz4l_mass.setBins(bins) 
 
         superDiscVarName = "CMS_zz4l_smd"
+        if(self.spinHyp >= 9) : ###Production Independent SuperKD
+            superDiscVarName = "CMS_zz4l_ProdIndepSKD"
         ##SD = ROOT.RooRealVar(superDiscVarName,superDiscVarName,0.0,1.0)
         ##SD.setBins(ufbins,"ufbins")
 
@@ -268,10 +287,7 @@ class datacardClass:
         mean_BW_d = self.mH
         gamma_BW_d = 0.0
         
-        if(self.all_chan):
-            rdhXsBrFuncV_1 = self.makeXsBrFunction(0,self.MH)
-        else:
-            rdhXsBrFuncV_1 = self.makeXsBrFunction(1,self.MH)
+        rdhXsBrFuncV_1 = self.makeXsBrFunction(1,self.MH)
         rhfname = "rhfXsBr_{0}_{1:.0f}_{2:.0f}".format("ggH",self.channel,self.sqrts)
         rhfXsBrFuncV_1 = ROOT.RooHistFunc(rhfname,rhfname, ROOT.RooArgSet(self.MH), rdhXsBrFuncV_1, 1)
         
@@ -441,6 +457,20 @@ class datacardClass:
             discVarName = "CMS_zz4l_p1minusKD"
         elif (self.spinHyp == 5):
             discVarName = "CMS_zz4l_qqgraviKD"
+        elif (self.spinHyp == 6):
+            discVarName = "CMS_zz4l_p2hplusKD"
+        elif (self.spinHyp == 7):
+            discVarName = "CMS_zz4l_p2hminusKD"
+        elif (self.spinHyp == 8):
+            discVarName = "CMS_zz4l_p2bplusKD"
+        elif(self.spinHyp == 9):
+            discVarName = "CMS_zz4l_gravi_ProdIndepKD"
+        elif(self.spinHyp == 10):
+            discVarName = "CMS_zz4l_qqgravi_ProdIndepKD"
+        elif(self.spinHyp == 11):
+            discVarName = "CMS_zz4l_p1minus_ProdIndepKD"
+        elif(self.spinHyp == 9):
+            discVarName = "CMS_zz4l_p1plus_ProdIndepKD"
         else :
             discVarName = "CMS_zz4l_pseudoKD"
 
@@ -765,16 +795,98 @@ class datacardClass:
         bkg_ggzz = ROOT.RooggZZPdf_v2("bkg_ggzzTmp","bkg_ggzzTmp",CMS_zz4l_mass,CMS_ggzzbkg_a0,CMS_ggzzbkg_a1,CMS_ggzzbkg_a2,CMS_ggzzbkg_a3,CMS_ggzzbkg_a4,CMS_ggzzbkg_a5,CMS_ggzzbkg_a6,CMS_ggzzbkg_a7,CMS_ggzzbkg_a8,CMS_ggzzbkg_a9)
     
         ## Reducible backgrounds
-        val_meanL = float(theInputs['zjetsShape_mean'])
-        val_sigmaL = float(theInputs['zjetsShape_sigma'])
- 
-        name = "mlZjet_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        mlZjet = ROOT.RooRealVar(name,"mean landau Zjet",val_meanL)
-        name = "slZjet_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        slZjet = ROOT.RooRealVar(name,"sigma landau Zjet",val_sigmaL)
-        bkg_zjets = ROOT.RooLandau("bkg_zjetsTmp","bkg_zjetsTmp",CMS_zz4l_mass,mlZjet,slZjet) 
+        ## Reducible backgrounds
+        val_meanL_3P1F = float(theInputs['zjetsShape_mean_3P1F'])
+        val_sigmaL_3P1F = float(theInputs['zjetsShape_sigma_3P1F'])
+        val_normL_3P1F = float(theInputs['zjetsShape_norm_3P1F'])
+        
+        val_meanL_2P2F = float(theInputs['zjetsShape_mean_2P2F'])
+        val_sigmaL_2P2F = float(theInputs['zjetsShape_sigma_2P2F'])
+        val_normL_2P2F = float(theInputs['zjetsShape_norm_2P2F'])
+        val_pol0_2P2F = float(theInputs['zjetsShape_pol0_2P2F'])
+        val_pol1_2P2F = float(theInputs['zjetsShape_pol1_2P2F'])
+        
+        val_meanL_2P2F_2 = float(theInputs['zjetsShape_mean_2P2F_2e2mu'])
+        val_sigmaL_2P2F_2 = float(theInputs['zjetsShape_sigma_2P2F_2e2mu'])
+        val_normL_2P2F_2 = float(theInputs['zjetsShape_norm_2P2F_2e2mu'])
 
-
+        
+        if (self.channel == self.ID_4mu):
+            name = "mlZjet_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+            mlZjet = ROOT.RooRealVar(name,"mean landau Zjet",val_meanL_2P2F)
+            name = "slZjet_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+            slZjet = ROOT.RooRealVar(name,"sigma landau Zjet",val_sigmaL_2P2F)
+            print "mean 4mu: ",mlZjet.getVal()
+            print "sigma 4mu: ",slZjet.getVal()
+            bkg_zjets = ROOT.RooLandau("bkg_zjetsTmp","bkg_zjetsTmp",CMS_zz4l_mass,mlZjet,slZjet)
+        elif (self.channel == self.ID_4e):
+            name = "mlZjet_2p2f_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+            mlZjet_2p2f = ROOT.RooRealVar(name,"mean landau Zjet 2p2f",val_meanL_2P2F)
+            name = "slZjet_2p2f_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+            slZjet_2p2f = ROOT.RooRealVar(name,"sigma landau Zjet 2p2f",val_sigmaL_2P2F)
+            name = "nlZjet_2p2f_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+            nlZjet_2p2f = ROOT.RooRealVar(name,"norm landau Zjet 2p2f",val_normL_2P2F)
+            name = "p0Zjet_2p2f_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+            p0Zjet_2p2f = ROOT.RooRealVar(name,"p0 Zjet 2p2f",val_pol0_2P2F)
+            name = "p1Zjet_2p2f_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+            p1Zjet_2p2f = ROOT.RooRealVar(name,"p1 Zjet 2p2f",val_pol1_2P2F)
+            print "mean 2p2f 4e: ",mlZjet_2p2f.getVal()
+            print "sigma 2p2f 4e: ",slZjet_2p2f.getVal()
+            print "norm 2p2f 4e: ",nlZjet_2p2f.getVal()
+            print "pol0 2p2f 4e: ",p0Zjet_2p2f.getVal()
+            print "pol1 2p2f 4e: ",p1Zjet_2p2f.getVal()
+            bkg_zjets_2p2f = ROOT.RooGenericPdf("bkg_zjetsTmp_2p2f","bkg_zjetsTmp_2p2f","(TMath::Landau(@0,@1,@2))*@3*(1.+ TMath::Exp(@4+@5*@0))",RooArgList(CMS_zz4l_mass,mlZjet_2p2f,slZjet_2p2f,nlZjet_2p2f,p0Zjet_2p2f,p1Zjet_2p2f))
+            
+            name = "mlZjet_3p1f_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+            mlZjet_3p1f = ROOT.RooRealVar(name,"mean landau Zjet 3p1f",val_meanL_3P1F)
+            name = "slZjet_3p1f_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+            slZjet_3p1f = ROOT.RooRealVar(name,"sigma landau Zjet 3p1f",val_sigmaL_3P1F)
+            name = "nlZjet_3p1f_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+            nlZjet_3p1f = ROOT.RooRealVar(name,"norm landau Zjet 3p1f",val_normL_3P1F)
+            print "mean 3p1f 4e: ",mlZjet_3p1f.getVal()
+            print "sigma 3p1f 4e: ",slZjet_3p1f.getVal()
+            print "norm 3p1f 4e: ",nlZjet_3p1f.getVal()
+            bkg_zjets_3p1f = ROOT.RooLandau("bkg_zjetsTmp_3p1f","bkg_zjetsTmp_3p1f",CMS_zz4l_mass,mlZjet_3p1f,slZjet_3p1f)
+            
+            bkg_zjets = ROOT.RooAddPdf("bkg_zjetsTmp","bkg_zjetsTmp",ROOT.RooArgList(bkg_zjets_2p2f,bkg_zjets_3p1f),ROOT.RooArgList(nlZjet_2p2f,nlZjet_3p1f))
+            
+        elif (self.channel == self.ID_2e2mu):
+            name = "mlZjet_2p2f_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+            mlZjet_2p2f = ROOT.RooRealVar(name,"mean landau Zjet 2p2f",val_meanL_2P2F)
+            name = "slZjet_2p2f_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+            slZjet_2p2f = ROOT.RooRealVar(name,"sigma landau Zjet 2p2f",val_sigmaL_2P2F)
+            name = "nlZjet_2p2f_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+            nlZjet_2p2f = ROOT.RooRealVar(name,"norm landau Zjet 2p2f",val_normL_2P2F)
+            print "mean 2p2f 2mu2e: ",mlZjet_2p2f.getVal()
+            print "sigma 2p2f 2mu2e: ",slZjet_2p2f.getVal()
+            print "norm 2p2f 2mu2e: ",nlZjet_2p2f.getVal()
+            bkg_zjets_2p2f = ROOT.RooLandau("bkg_zjetsTmp_2p2f","bkg_zjetsTmp_2p2f",CMS_zz4l_mass,mlZjet_2p2f,slZjet_2p2f)
+            
+            name = "mlZjet_2p2f_2_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+            mlZjet_2p2f_2 = ROOT.RooRealVar(name,"mean landau Zjet 2p2f 2e2mu",val_meanL_2P2F_2)
+            name = "slZjet_2p2f_2_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+            slZjet_2p2f_2 = ROOT.RooRealVar(name,"sigma landau Zjet 2p2f 2e2mu",val_sigmaL_2P2F_2)
+            name = "nlZjet_2p2f_2_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+            nlZjet_2p2f_2 = ROOT.RooRealVar(name,"norm landau Zjet 2p2f 2e2mu",val_normL_2P2F_2)
+            print "mean 2p2f 2e2mu: ",mlZjet_2p2f_2.getVal()
+            print "sigma 2p2f 2e2mu: ",slZjet_2p2f_2.getVal()
+            print "norm 2p2f 2e2mu: ",nlZjet_2p2f_2.getVal()
+            bkg_zjets_2p2f_2 = ROOT.RooLandau("bkg_zjetsTmp_2p2f_2","bkg_zjetsTmp_2p2f_2",CMS_zz4l_mass,mlZjet_2p2f_2,slZjet_2p2f_2)
+            
+            name = "mlZjet_3p1f_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+            mlZjet_3p1f = ROOT.RooRealVar(name,"mean landau Zjet 3p1f",val_meanL_3P1F)
+            name = "slZjet_3p1f_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+            slZjet_3p1f = ROOT.RooRealVar(name,"sigma landau Zjet 3p1f",val_sigmaL_3P1F)
+            name = "nlZjet_3p1f_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+            nlZjet_3p1f = ROOT.RooRealVar(name,"norm landau Zjet 3p1f",val_normL_3P1F)
+            print "mean 3p1f 2mu2e: ",mlZjet_3p1f.getVal()
+            print "sigma 3p1f 2mu2e: ",slZjet_3p1f.getVal()
+            print "norm 3p1f 2mu2e: ",nlZjet_3p1f.getVal()
+            bkg_zjets_3p1f = ROOT.RooLandau("bkg_zjetsTmp_3p1f","bkg_zjetsTmp_3p1f",CMS_zz4l_mass,mlZjet_3p1f,slZjet_3p1f)
+            
+            bkg_zjets = ROOT.RooAddPdf("bkg_zjetsTmp","bkg_zjetsTmp",ROOT.RooArgList(bkg_zjets_2p2f,bkg_zjets_3p1f,bkg_zjets_2p2f_2),ROOT.RooArgList(nlZjet_2p2f,nlZjet_3p1f,nlZjet_2p2f_2))
+            
+            
 
       ## ----------------- SuperMELA 2D BACKGROUND SHAPES --------------- ##
         print 'SUPERMELA 2D BACKGROUND SHAPES'
@@ -948,6 +1060,90 @@ class datacardClass:
         sigEffName = "hzz4lsigeff_{0:.0f}_{1:.0f}_g3".format(self.channel,self.sqrts)
         rrvg3 = ROOT.RooRealVar(sigEffName,sigEffName, theInputs['sigEff_g3'])
 
+        sigEffName = "hzz4lqqHeff_{0:.0f}_{1:.0f}_a1".format(self.channel,self.sqrts)
+        rrva1_qqh = ROOT.RooRealVar(sigEffName,sigEffName, theInputs['sigEff_qqHa1'])
+        sigEffName = "hzz4lqqHeff_{0:.0f}_{1:.0f}_a2".format(self.channel,self.sqrts)
+        rrva2_qqh = ROOT.RooRealVar(sigEffName,sigEffName, theInputs['sigEff_qqHa2'])
+        sigEffName = "hzz4lqqHeff_{0:.0f}_{1:.0f}_a3".format(self.channel,self.sqrts)
+        rrva3_qqh = ROOT.RooRealVar(sigEffName,sigEffName, theInputs['sigEff_qqHa3'])
+        sigEffName = "hzz4lqqHeff_{0:.0f}_{1:.0f}_a4".format(self.channel,self.sqrts)
+        rrva4_qqh = ROOT.RooRealVar(sigEffName,sigEffName, theInputs['sigEff_qqHa4'])
+        sigEffName = "hzz4lqqHeff_{0:.0f}_{1:.0f}_b1".format(self.channel,self.sqrts)
+        rrvb1_qqh = ROOT.RooRealVar(sigEffName,sigEffName, theInputs['sigEff_qqHb1'])
+        sigEffName = "hzz4lqqHeff_{0:.0f}_{1:.0f}_b2".format(self.channel,self.sqrts)
+        rrvb2_qqh = ROOT.RooRealVar(sigEffName,sigEffName, theInputs['sigEff_qqHb2'])
+        sigEffName = "hzz4lqqHeff_{0:.0f}_{1:.0f}_b3".format(self.channel,self.sqrts)
+        rrvb3_qqh = ROOT.RooRealVar(sigEffName,sigEffName, theInputs['sigEff_qqHb3'])
+        sigEffName = "hzz4lqqHeff_{0:.0f}_{1:.0f}_g1".format(self.channel,self.sqrts)
+        rrvg1_qqh = ROOT.RooRealVar(sigEffName,sigEffName, theInputs['sigEff_qqHg1'])
+        sigEffName = "hzz4lqqHeff_{0:.0f}_{1:.0f}_g2".format(self.channel,self.sqrts)
+        rrvg2_qqh = ROOT.RooRealVar(sigEffName,sigEffName, theInputs['sigEff_qqHg2'])
+        sigEffName = "hzz4lqqHeff_{0:.0f}_{1:.0f}_g3".format(self.channel,self.sqrts)
+        rrvg3_qqh = ROOT.RooRealVar(sigEffName,sigEffName, theInputs['sigEff_qqHg3'])
+        
+        sigEffName = "hzz4lZHeff_{0:.0f}_{1:.0f}_a1".format(self.channel,self.sqrts)
+        rrva1_zh = ROOT.RooRealVar(sigEffName,sigEffName, theInputs['sigEff_ZHa1'])
+        sigEffName = "hzz4lZHeff_{0:.0f}_{1:.0f}_a2".format(self.channel,self.sqrts)
+        rrva2_zh = ROOT.RooRealVar(sigEffName,sigEffName, theInputs['sigEff_ZHa2'])
+        sigEffName = "hzz4lZHeff_{0:.0f}_{1:.0f}_a3".format(self.channel,self.sqrts)
+        rrva3_zh = ROOT.RooRealVar(sigEffName,sigEffName, theInputs['sigEff_ZHa3'])
+        sigEffName = "hzz4lZHeff_{0:.0f}_{1:.0f}_a4".format(self.channel,self.sqrts)
+        rrva4_zh = ROOT.RooRealVar(sigEffName,sigEffName, theInputs['sigEff_ZHa4'])
+        sigEffName = "hzz4lZHeff_{0:.0f}_{1:.0f}_b1".format(self.channel,self.sqrts)
+        rrvb1_zh = ROOT.RooRealVar(sigEffName,sigEffName, theInputs['sigEff_ZHb1'])
+        sigEffName = "hzz4lZHeff_{0:.0f}_{1:.0f}_b2".format(self.channel,self.sqrts)
+        rrvb2_zh = ROOT.RooRealVar(sigEffName,sigEffName, theInputs['sigEff_ZHb2'])
+        sigEffName = "hzz4lZHeff_{0:.0f}_{1:.0f}_b3".format(self.channel,self.sqrts)
+        rrvb3_zh = ROOT.RooRealVar(sigEffName,sigEffName, theInputs['sigEff_ZHb3'])
+        sigEffName = "hzz4lZHeff_{0:.0f}_{1:.0f}_g1".format(self.channel,self.sqrts)
+        rrvg1_zh = ROOT.RooRealVar(sigEffName,sigEffName, theInputs['sigEff_ZHg1'])
+        sigEffName = "hzz4lZHeff_{0:.0f}_{1:.0f}_g2".format(self.channel,self.sqrts)
+        rrvg2_zh = ROOT.RooRealVar(sigEffName,sigEffName, theInputs['sigEff_ZHg2'])
+        sigEffName = "hzz4lZHeff_{0:.0f}_{1:.0f}_g3".format(self.channel,self.sqrts)
+        rrvg3_zh = ROOT.RooRealVar(sigEffName,sigEffName, theInputs['sigEff_ZHg3'])
+        
+        sigEffName = "hzz4lWHeff_{0:.0f}_{1:.0f}_a1".format(self.channel,self.sqrts)
+        rrva1_wh = ROOT.RooRealVar(sigEffName,sigEffName, theInputs['sigEff_WHa1'])
+        sigEffName = "hzz4lWHeff_{0:.0f}_{1:.0f}_a2".format(self.channel,self.sqrts)
+        rrva2_wh = ROOT.RooRealVar(sigEffName,sigEffName, theInputs['sigEff_WHa2'])
+        sigEffName = "hzz4lWHeff_{0:.0f}_{1:.0f}_a3".format(self.channel,self.sqrts)
+        rrva3_wh = ROOT.RooRealVar(sigEffName,sigEffName, theInputs['sigEff_WHa3'])
+        sigEffName = "hzz4lWHeff_{0:.0f}_{1:.0f}_a4".format(self.channel,self.sqrts)
+        rrva4_wh = ROOT.RooRealVar(sigEffName,sigEffName, theInputs['sigEff_WHa4'])
+        sigEffName = "hzz4lWHeff_{0:.0f}_{1:.0f}_b1".format(self.channel,self.sqrts)
+        rrvb1_wh = ROOT.RooRealVar(sigEffName,sigEffName, theInputs['sigEff_WHb1'])
+        sigEffName = "hzz4lWHeff_{0:.0f}_{1:.0f}_b2".format(self.channel,self.sqrts)
+        rrvb2_wh = ROOT.RooRealVar(sigEffName,sigEffName, theInputs['sigEff_WHb2'])
+        sigEffName = "hzz4lWHeff_{0:.0f}_{1:.0f}_b3".format(self.channel,self.sqrts)
+        rrvb3_wh = ROOT.RooRealVar(sigEffName,sigEffName, theInputs['sigEff_WHb3'])
+        sigEffName = "hzz4lWHeff_{0:.0f}_{1:.0f}_g1".format(self.channel,self.sqrts)
+        rrvg1_wh = ROOT.RooRealVar(sigEffName,sigEffName, theInputs['sigEff_WHg1'])
+        sigEffName = "hzz4lWHeff_{0:.0f}_{1:.0f}_g2".format(self.channel,self.sqrts)
+        rrvg2_wh = ROOT.RooRealVar(sigEffName,sigEffName, theInputs['sigEff_WHg2'])
+        sigEffName = "hzz4lWHeff_{0:.0f}_{1:.0f}_g3".format(self.channel,self.sqrts)
+        rrvg3_wh = ROOT.RooRealVar(sigEffName,sigEffName, theInputs['sigEff_WHg3'])
+        
+        sigEffName = "hzz4lttHeff_{0:.0f}_{1:.0f}_a1".format(self.channel,self.sqrts)
+        rrva1_tth = ROOT.RooRealVar(sigEffName,sigEffName, theInputs['sigEff_ttHa1'])
+        sigEffName = "hzz4lttHeff_{0:.0f}_{1:.0f}_a2".format(self.channel,self.sqrts)
+        rrva2_tth = ROOT.RooRealVar(sigEffName,sigEffName, theInputs['sigEff_ttHa2'])
+        sigEffName = "hzz4lttHeff_{0:.0f}_{1:.0f}_a3".format(self.channel,self.sqrts)
+        rrva3_tth = ROOT.RooRealVar(sigEffName,sigEffName, theInputs['sigEff_ttHa3'])
+        sigEffName = "hzz4lttHeff_{0:.0f}_{1:.0f}_a4".format(self.channel,self.sqrts)
+        rrva4_tth = ROOT.RooRealVar(sigEffName,sigEffName, theInputs['sigEff_ttHa4'])
+        sigEffName = "hzz4lttHeff_{0:.0f}_{1:.0f}_b1".format(self.channel,self.sqrts)
+        rrvb1_tth = ROOT.RooRealVar(sigEffName,sigEffName, theInputs['sigEff_ttHb1'])
+        sigEffName = "hzz4lttHeff_{0:.0f}_{1:.0f}_b2".format(self.channel,self.sqrts)
+        rrvb2_tth = ROOT.RooRealVar(sigEffName,sigEffName, theInputs['sigEff_ttHb2'])
+        sigEffName = "hzz4lttHeff_{0:.0f}_{1:.0f}_b3".format(self.channel,self.sqrts)
+        rrvb3_tth = ROOT.RooRealVar(sigEffName,sigEffName, theInputs['sigEff_ttHb3'])
+        sigEffName = "hzz4lttHeff_{0:.0f}_{1:.0f}_g1".format(self.channel,self.sqrts)
+        rrvg1_tth = ROOT.RooRealVar(sigEffName,sigEffName, theInputs['sigEff_ttHg1'])
+        sigEffName = "hzz4lttHeff_{0:.0f}_{1:.0f}_g2".format(self.channel,self.sqrts)
+        rrvg2_tth = ROOT.RooRealVar(sigEffName,sigEffName, theInputs['sigEff_ttHg2'])
+        sigEffName = "hzz4lttHeff_{0:.0f}_{1:.0f}_g3".format(self.channel,self.sqrts)
+        rrvg3_tth = ROOT.RooRealVar(sigEffName,sigEffName, theInputs['sigEff_ttHg3'])
+
         if(DEBUG):
             print "sigEff_a1 = ",theInputs['sigEff_a1']
             print "sigEff_a2 = ",theInputs['sigEff_a2']
@@ -956,17 +1152,98 @@ class datacardClass:
             print "sigEff_b1 = ",theInputs['sigEff_b1']
             print "sigEff_b2 = ",theInputs['sigEff_b2']
             print "sigEff_b3 = ",theInputs['sigEff_b3']
-           
+            print "sigEff_g1 = ",theInputs['sigEff_g1']
+            print "sigEff_g2 = ",theInputs['sigEff_g2']
+            print "sigEff_g3 = ",theInputs['sigEff_g3']
+
+            print "sigEff_qqHa1 = ",theInputs['sigEff_qqHa1']
+            print "sigEff_qqHa2 = ",theInputs['sigEff_qqHa2']
+            print "sigEff_qqHa3 = ",theInputs['sigEff_qqHa3']
+            print "sigEff_qqHa4 = ",theInputs['sigEff_qqHa4']
+            print "sigEff_qqHb1 = ",theInputs['sigEff_qqHb1']
+            print "sigEff_qqHb2 = ",theInputs['sigEff_qqHb2']
+            print "sigEff_qqHb3 = ",theInputs['sigEff_qqHb3']
+            print "sigEff_qqHg1 = ",theInputs['sigEff_qqHg1']
+            print "sigEff_qqHg2 = ",theInputs['sigEff_qqHg2']
+            print "sigEff_qqHg3 = ",theInputs['sigEff_qqHg3']
+
+            print "sigEff_ZHa1 = ",theInputs['sigEff_ZHa1']
+            print "sigEff_ZHa2 = ",theInputs['sigEff_ZHa2']
+            print "sigEff_ZHa3 = ",theInputs['sigEff_ZHa3']
+            print "sigEff_ZHa4 = ",theInputs['sigEff_ZHa4']
+            print "sigEff_ZHb1 = ",theInputs['sigEff_ZHb1']
+            print "sigEff_ZHb2 = ",theInputs['sigEff_ZHb2']
+            print "sigEff_ZHb3 = ",theInputs['sigEff_ZHb3']
+            print "sigEff_ZHg1 = ",theInputs['sigEff_ZHg1']
+            print "sigEff_ZHg2 = ",theInputs['sigEff_ZHg2']
+            print "sigEff_ZHg3 = ",theInputs['sigEff_ZHg3']
+
+            print "sigEff_WHa1 = ",theInputs['sigEff_WHa1']
+            print "sigEff_WHa2 = ",theInputs['sigEff_WHa2']
+            print "sigEff_WHa3 = ",theInputs['sigEff_WHa3']
+            print "sigEff_WHa4 = ",theInputs['sigEff_WHa4']
+            print "sigEff_WHb1 = ",theInputs['sigEff_WHb1']
+            print "sigEff_WHb2 = ",theInputs['sigEff_WHb2']
+            print "sigEff_WHb3 = ",theInputs['sigEff_WHb3']
+            print "sigEff_WHg1 = ",theInputs['sigEff_WHg1']
+            print "sigEff_WHg2 = ",theInputs['sigEff_WHg2']
+            print "sigEff_WHg3 = ",theInputs['sigEff_WHg3']
+
+            print "sigEff_ttHa1 = ",theInputs['sigEff_ttHa1']
+            print "sigEff_ttHa2 = ",theInputs['sigEff_ttHa2']
+            print "sigEff_ttHa3 = ",theInputs['sigEff_ttHa3']
+            print "sigEff_ttHa4 = ",theInputs['sigEff_ttHa4']
+            print "sigEff_ttHb1 = ",theInputs['sigEff_ttHb1']
+            print "sigEff_ttHb2 = ",theInputs['sigEff_ttHb2']
+            print "sigEff_ttHb3 = ",theInputs['sigEff_ttHb3']
+            print "sigEff_ttHg1 = ",theInputs['sigEff_ttHg1']
+            print "sigEff_ttHg2 = ",theInputs['sigEff_ttHg2']
+            print "sigEff_ttHg3 = ",theInputs['sigEff_ttHg3']
     
-        sigEffName = "hzz4lsignaleff_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        sigEffName_ggH = "hzz4lggHeff_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        sigEffName_qqH = "hzz4lqqHeff_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        sigEffName_WH = "hzz4lWHeff_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        sigEffName_ZH = "hzz4lZHeff_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+        sigEffName_ttH = "hzz4lttHeff_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
 
         listEff = ROOT.RooArgList(rrva1,rrva2,rrva3,rrva4,rrvb1,rrvb2,rrvb3,self.MH)
         listEff.add(rrvg1)
         listEff.add(rrvg2)
         listEff.add(rrvg3)
-        rfvSigEff = ROOT.RooFormulaVar(sigEffName,"(@0+@1*TMath::Erf((@7-@2)/@3))*(@4+@5*@7+@6*@7*@7)+@8*TMath::Gaus(@7,@9,@10)",listEff) #ROOT.RooArgList(rrva1,rrva2,rrva3,rrva4,rrvb1,rrvb2,rrvb3,self.MH,rrvg1,rrvg2,rrvg3))
+
+        listEff_qqh = ROOT.RooArgList(rrva1_qqh,rrva2_qqh,rrva3_qqh,rrva4_qqh,rrvb1_qqh,rrvb2_qqh,rrvb3_qqh,self.MH)
+        listEff_qqh.add(rrvg1_qqh)
+        listEff_qqh.add(rrvg2_qqh)
+        listEff_qqh.add(rrvg3_qqh)
+
+        listEff_wh = ROOT.RooArgList(rrva1_wh,rrva2_wh,rrva3_wh,rrva4_wh,rrvb1_wh,rrvb2_wh,rrvb3_wh,self.MH)
+        listEff_wh.add(rrvg1_wh)
+        listEff_wh.add(rrvg2_wh)
+        listEff_wh.add(rrvg3_wh)
+
+        listEff_zh = ROOT.RooArgList(rrva1_zh,rrva2_zh,rrva3_zh,rrva4_zh,rrvb1_zh,rrvb2_zh,rrvb3_zh,self.MH)
+        listEff_zh.add(rrvg1_zh)
+        listEff_zh.add(rrvg2_zh)
+        listEff_zh.add(rrvg3_zh)
+
+        listEff_tth = ROOT.RooArgList(rrva1_tth,rrva2_tth,rrva3_tth,rrva4_tth,rrvb1_tth,rrvb2_tth,rrvb3_tth,self.MH)
+        listEff_tth.add(rrvg1_tth)
+        listEff_tth.add(rrvg2_tth)
+        listEff_tth.add(rrvg3_tth)
+        
+        rfvSigEff_ggH = ROOT.RooFormulaVar(sigEffName_ggH,"(@0+@1*TMath::Erf((@7-@2)/@3))*(@4+@5*@7+@6*@7*@7)+@8*TMath::Gaus(@7,@9,@10)",listEff) #ROOT.RooArgList(rrva1,rrva2,rrva3,rrva4,rrvb1,rrvb2,rrvb3,self.MH,rrvg1,rrvg2,rrvg3))
+
+        rfvSigEff_qqH = ROOT.RooFormulaVar(sigEffName_qqH,"(@0+@1*TMath::Erf((@7-@2)/@3))*(@4+@5*@7+@6*@7*@7)+@8*TMath::Gaus(@7,@9,@10)",listEff_qqh)
+        rfvSigEff_ZH = ROOT.RooFormulaVar(sigEffName_ZH,"(@0+@1*TMath::Erf((@7-@2)/@3))*(@4+@5*@7+@6*@7*@7)+@8*TMath::Gaus(@7,@9,@10)",listEff_zh)
+        rfvSigEff_WH = ROOT.RooFormulaVar(sigEffName_WH,"(@0+@1*TMath::Erf((@7-@2)/@3))*(@4+@5*@7+@6*@7*@7)+@8*TMath::Gaus(@7,@9,@10)",listEff_wh)
+        rfvSigEff_ttH = ROOT.RooFormulaVar(sigEffName_ttH,"(@0+@1*TMath::Erf((@7-@2)/@3))*(@4+@5*@7+@6*@7*@7)+@8*TMath::Gaus(@7,@9,@10)",listEff_tth)
+
         ## following printout is needed ,  dont remove it
-        print " @@@@@@@@ sigeff ",rfvSigEff.getVal()
+        print " @@@@@@@@ ggHeff ",rfvSigEff_ggH.getVal()
+        print " @@@@@@@@ qqHeff ",rfvSigEff_qqH.getVal()
+        print " @@@@@@@@ ZHeff ",rfvSigEff_ZH.getVal()
+        print " @@@@@@@@ WHeff ",rfvSigEff_WH.getVal()
+        print " @@@@@@@@ ttHeff ",rfvSigEff_ttH.getVal()
     
         CS_ggH = myCSW.HiggsCS(1,self.mH,self.sqrts)
         CS_VBF = myCSW.HiggsCS(2,self.mH,self.sqrts)
@@ -982,21 +1259,28 @@ class datacardClass:
         if( self.channel == self.ID_4e ): BR = BRH4e
         if( self.channel == self.ID_2e2mu ): BR = BRH2e2mu
     
-        sigEfficiency = rfvSigEff.getVal()
+        #HZZ Branching ratio for ZH,WH,ttH samples
+        BRZZ = myCSW.HiggsBR(11,self.mH)
+    
+        sigEfficiency_ggH = rfvSigEff_ggH.getVal()
+        sigEfficiency_qqH = rfvSigEff_qqH.getVal()
+        sigEfficiency_ZH = rfvSigEff_ZH.getVal()
+        sigEfficiency_WH = rfvSigEff_WH.getVal()
+        sigEfficiency_ttH = rfvSigEff_ttH.getVal()
 
         if(DEBUG):
             print "CS_ggH: ",CS_ggH,", CS_VBF: ",CS_VBF,", CS_WH: ",CS_WH,", CS_ZH: ",CS_ZH
-            print ", CS_ttH: ",CS_ttH,", BRH2e2mu: ",BRH2e2mu,", BRH4mu: ",BRH4mu,", BRH4e: ",BRH4e
+            print ", CS_ttH: ",CS_ttH,", BRH2e2mu: ",BRH2e2mu,", BRH4mu: ",BRH4mu,", BRH4e: ",BRH4e," BRZZ: ",BRZZ
 
         csCorrection = 1.0
         if(self.sqrts == 7): csCorrection = self.csFilter(self.mH)
 
         ## SIG YIELDS
-        sigRate_ggH = csCorrection*CS_ggH*BR*sigEfficiency*1000.*self.lumi
-        sigRate_VBF = csCorrection*CS_VBF*BR*sigEfficiency*1000.*self.lumi
-        sigRate_WH = csCorrection*CS_WH*BR*sigEfficiency*1000.*self.lumi
-        sigRate_ZH = csCorrection*CS_ZH*BR*sigEfficiency*1000.*self.lumi
-        sigRate_ttH = csCorrection*CS_ttH*BR*sigEfficiency*1000.*self.lumi
+        sigRate_ggH = csCorrection*CS_ggH*BR*sigEfficiency_ggH*1000.*self.lumi
+        sigRate_VBF = csCorrection*CS_VBF*BR*sigEfficiency_qqH*1000.*self.lumi
+        sigRate_WH = csCorrection*CS_WH*BRZZ*sigEfficiency_WH*1000.*self.lumi
+        sigRate_ZH = csCorrection*CS_ZH*BRZZ*sigEfficiency_ZH*1000.*self.lumi
+        sigRate_ttH = csCorrection*CS_ttH*BRZZ*sigEfficiency_ttH*1000.*self.lumi
        
         normalizationSignal = signalCB_ggH.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass), ROOT.RooFit.Range("fullrangesignal") ).getVal()
         
@@ -1006,42 +1290,77 @@ class datacardClass:
    ####     print "#################### ",sig_ggH.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass), ROOT.RooFit.Range("fullrangesignal") ).getVal()
         
         sclFactorSig_ggH = sigRate_ggH/normalizationSignal
+        sclFactorSig_VBF = sigRate_VBF/normalizationSignal
+        sclFactorSig_WH = sigRate_WH/normalizationSignal
+        sclFactorSig_ZH = sigRate_ZH/normalizationSignal
+        sclFactorSig_ttH = sigRate_ttH/normalizationSignal
+
         integral_ggH = 0.0
+        integral_VBF = 0.0
+        integral_WH  = 0.0
+        integral_ZH  = 0.0
+        integral_ttH = 0.0
      
         integral_ggH =signalCB_ggH.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass), ROOT.RooFit.Range("shape") ).getVal()
+        integral_VBF =signalCB_ggH.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass), ROOT.RooFit.Range("shape") ).getVal()
+        integral_ZH =signalCB_ggH.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass), ROOT.RooFit.Range("shape") ).getVal()
+        integral_WH =signalCB_ggH.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass), ROOT.RooFit.Range("shape") ).getVal()
+        integral_ttH =signalCB_ggH.createIntegral( ROOT.RooArgSet(CMS_zz4l_mass), ROOT.RooFit.Range("shape") ).getVal()
+        
         sigRate_ggH_Shape = sclFactorSig_ggH*integral_ggH
+        sigRate_VBF_Shape = sclFactorSig_VBF*integral_VBF
+        sigRate_WH_Shape = sclFactorSig_WH*integral_WH
+        sigRate_ZH_Shape = sclFactorSig_ZH*integral_ZH
+        sigRate_ttH_Shape = sclFactorSig_ttH*integral_ttH
            
         normSigName = "cmshzz4l_normalizationSignal_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         rrvNormSig = ROOT.RooRealVar()
 
 
-        rrvNormSig = ROOT.RooRealVar(normSigName,normSigName, self.getVariable(signalCB_ggH.createIntegral(ROOT.RooArgSet(CMS_zz4l_mass)).getVal(),sig_ggH.createIntegral(ROOT.RooArgSet(CMS_zz4l_mass)).getVal(),self.bUseCBnoConvolution))
+        rrvNormSig = ROOT.RooRealVar(normSigName,normSigName, self.getVariable(signalCB_ggH.createIntegral(ROOT.RooArgSet(CMS_zz4l_mass),ROOT.RooFit.Range("fullrange")).getVal(),sig_ggH.createIntegral(ROOT.RooArgSet(CMS_zz4l_mass),ROOT.RooFit.Range("fullrange")).getVal(),self.bUseCBnoConvolution))
         rrvNormSig.setConstant(True)
 
-      
-            
-      #  rfvSigRate_ggH = ROOT.RooFormulaVar("ggH_norm","@0*@1*@2*1000*{0}*{2}/{1}".format(self.lumi,rrvNormSig.getVal(),self.getVariable(signalCB_ggH.createIntegral(RooArgSet(CMS_zz4l_mass),ROOT.RooFit.Range("shape")).getVal(),sig_ggH.createIntegral(RooArgSet(CMS_zz4l_mass),ROOT.RooFit.Range("shape")).getVal(),self.bUseCBnoConvolution)),ROOT.RooArgList(rfvCsFilter,rfvSigEff, rhfXsBrFuncV_1))
-
-        rfvSigRate_ggH = ROOT.RooFormulaVar("ggH_norm","@0*@1*@2*1000*{0}*{2}/{1}".format(self.lumi,rrvNormSig.getVal(),integral_ggH),ROOT.RooArgList(rfvCsFilter,rfvSigEff, rhfXsBrFuncV_1))
-
-        print "Compare integrals: integral_ggH=",integral_ggH,"  ; calculated=",self.getVariable(signalCB_ggH.createIntegral(RooArgSet(CMS_zz4l_mass),ROOT.RooFit.Range("shape")).getVal(),sig_ggH.createIntegral(RooArgSet(CMS_zz4l_mass),ROOT.RooFit.Range("shape")).getVal(),self.bUseCBnoConvolution)
+        print "!!!%%%*** ",rrvNormSig.getVal()
+        print "!!!%%%*** ",integral_ggH
         
 
-      ###  rfvSigRate_ggH = ROOT.RooFormulaVar("ggH_norm","@0*@1*@2*1000*{0}*{2}/{1}".format(self.lumi,rrvNormSig.getVal(),integral_ggH),ROOT.RooArgList(rfvCsFilter,rfvSigEff, rhfXsBrFuncV_1))
-
+        rfvSigRate_ggH_temp = ROOT.RooFormulaVar("ggH_norm_temp","@0*@1*@2*1000*{0}*{2}/{1}".format(self.lumi,rrvNormSig.getVal(),integral_ggH),ROOT.RooArgList(rfvCsFilter,rfvSigEff_ggH, rhfXsBrFuncV_1))
+        
         print "Compare integrals: integral_ggH=",integral_ggH,"  ; calculated=",self.getVariable(signalCB_ggH.createIntegral(RooArgSet(CMS_zz4l_mass),ROOT.RooFit.Range("shape")).getVal(),sig_ggH.createIntegral(RooArgSet(CMS_zz4l_mass),ROOT.RooFit.Range("shape")).getVal(),self.bUseCBnoConvolution)
-
-
+        
+        rfvSigRate_VBF = ROOT.RooFormulaVar("qqH_norm","@0*@1*@2*1000*{0}*{2}/{1}".format(self.lumi,rrvNormSig.getVal(),integral_VBF),ROOT.RooArgList(rfvCsFilter,rfvSigEff_qqH, rhfXsBrFuncV_2))
+        
+        
+        rfvSigRate_WH = ROOT.RooFormulaVar("WH_norm","@0*@1*@2*1000*{0}*{2}/{1}".format(self.lumi,rrvNormSig.getVal(),integral_WH),ROOT.RooArgList(rfvCsFilter,rfvSigEff_WH, rhfXsBrFuncV_3))
+        
+        
+        rfvSigRate_ZH = ROOT.RooFormulaVar("ZH_norm","@0*@1*@2*1000*{0}*{2}/{1}".format(self.lumi,rrvNormSig.getVal(),integral_ZH),ROOT.RooArgList(rfvCsFilter,rfvSigEff_ZH, rhfXsBrFuncV_4))
+        
+        
+        rfvSigRate_ttH = ROOT.RooFormulaVar("ttH_norm","@0*@1*@2*1000*{0}*{2}/{1}".format(self.lumi,rrvNormSig.getVal(),integral_ttH),ROOT.RooArgList(rfvCsFilter,rfvSigEff_ttH, rhfXsBrFuncV_5))
+        
 
         print signalCB_ggH.createIntegral(ROOT.RooArgSet(CMS_zz4l_mass)).getVal(),"   ",sig_ggH.createIntegral(ROOT.RooArgSet(CMS_zz4l_mass)).getVal()
         print signalCB_ggH.createIntegral(ROOT.RooArgSet(CMS_zz4l_mass),ROOT.RooFit.Range("shape")).getVal(),"   ",sig_ggH.createIntegral(ROOT.RooArgSet(CMS_zz4l_mass),ROOT.RooFit.Range("shape")).getVal()
+
+        rfvSigRate_ggH = ROOT.RooFormulaVar("ggH_norm","{0}+{1}+{2}+{3}+{4}*@0".format(rfvSigRate_ggH_temp.getVal(),rfvSigRate_VBF.getVal(),rfvSigRate_WH.getVal(),rfvSigRate_ZH.getVal(),rfvSigRate_ttH.getVal()),ROOT.RooArgList(one))
         if (self.all_chan):
             print "Requested to sum up over the 5 chans: the norm in rfvSigRate_ggH should be the sum of the values of sigRate_XYZ_Shape variables:"
         print " @@@@@@@ norm sig = ",rrvNormSig.getVal()
-        print " @@@@@@@ rfvSigRate_ggH = ",rfvSigRate_ggH.getVal()
+        print " @@@@@@@ rfvSigRate_ggH_temp = ",rfvSigRate_ggH_temp.getVal()
         print " sigRate_ggH_Shape=",sigRate_ggH_Shape
-   
-   #     print "Sum of sigRate_XYZ_Shape=",sigRate_ggH_Shape+sigRate_VBF_Shape+sigRate_WH_Shape+sigRate_ZH_Shape+sigRate_ttH_Shape
+        print " @@@@@@@ rfvSigRate_VBF = ",rfvSigRate_VBF.getVal()
+        print " sigRate_VBF_Shape=",sigRate_VBF_Shape
+        print " @@@@@@@ rfvSigRate_WH = ",rfvSigRate_WH.getVal()
+        print " sigRate_WH_Shape=",sigRate_WH_Shape
+        print " @@@@@@@ rfvSigRate_ZH = ",rfvSigRate_ZH.getVal()
+        print " sigRate_ZH_Shape=",sigRate_ZH_Shape
+        print " @@@@@@@ rfvSigRate_ttH = ",rfvSigRate_ttH.getVal()
+        print " sigRate_ttH_Shape=",sigRate_ttH_Shape
+        print " @@@@@@@ rfvSigRate_ggH=",rfvSigRate_ggH.getVal()
+        print "Sum of sigRate_XYZ_Shape=",sigRate_ggH_Shape+sigRate_VBF_Shape+sigRate_WH_Shape+sigRate_ZH_Shape+sigRate_ttH_Shape
+            
+      
         ## SET RATES TO 1 
         ## DC RATES WILL BE MULTIPLIED
         ## BY RATES IMPORTED TO WS
@@ -1425,14 +1744,20 @@ class datacardClass:
 
         if (spinHypCode == 0) : ### 0+ vs 0-
             cALT = 0.5236
-        elif (spinHypCode == 1 or spinHypCode == 5) : ### 0+ vs 2m+ from gg or qq
+        elif (spinHypCode == 1 or spinHypCode == 5 or spinHypCode == 9 or spinHypcode == 10 ) : ### 0+ vs 2m+ from gg or qq or gg(decay) or qq(decay)
             cALT = 0.5265 #does not depend on production mechanism
         elif (spinHypCode == 2) : ### 0+ vs 0h+
             cALT = 0.5084
-        elif (spinHypCode == 3) : ### 0+ vs 1+
+        elif (spinHypCode == 3 or spinHypCode == 12) : ### 0+ vs 1+ with or without production
             cALT = 0.5210
-        elif (spinHypCode == 4) : ### 0+ vs 1-
+        elif (spinHypCode == 4 or spinHypCode == 11) : ### 0+ vs 1- with or without production
             cALT = 0.5068
+        elif (spinHypCode == 6) : ### 0+ vs 2h+
+            cALT = 0.5094
+        elif (spinHypCode == 7) : ### 0+ vs 2h-
+            cALT = 0.5148
+        elif (spinHypCode == 8) : ### 0+ vs 2b+
+            cALT = 0.5319
         elif (spinHypCode < 0) : ### dummy/default
             cALT = cSM
         else :
@@ -1470,7 +1795,7 @@ class datacardClass:
             else :  #( channel == self.ID_4e )
                 alpha=1.0
                 r=1.0
-        elif (spinHypCode == 1) : ### gg->0+ vs 2m+
+        elif (spinHypCode == 1 or spinHypCode == 9) : ### gg->0+ vs 2m+ with or without production
             if( channel == self.ID_2e2mu ):
                 alpha=1.0
                 r=1.0
@@ -1490,7 +1815,7 @@ class datacardClass:
             else :  #( channel == self.ID_4e )
                 alpha=1.0
                 r=1.0
-        elif (spinHypCode == 3) : ### 0+ vs 1+
+        elif (spinHypCode == 3 or spinHypCode == 12) : ### 0+ vs 1+ with or without production
             if( channel == self.ID_2e2mu ):
                 alpha=1.0
                 r=1.0
@@ -1500,7 +1825,7 @@ class datacardClass:
             else :  #( channel == self.ID_4e )
                 alpha=1.0
                 r=1.0
-        elif (spinHypCode == 4) : ### 0+ vs 1-
+        elif (spinHypCode == 4 or spinHypCode == 11) : ### 0+ vs 1- with or without production
             if( channel == self.ID_2e2mu ):
                 alpha=1.0
                 r=1.0
@@ -1510,7 +1835,37 @@ class datacardClass:
             else :  #( channel == self.ID_4e )
                 alpha=1.0
                 r=1.0
-        elif (spinHypCode == 5) : ### qq->0+ vs 2m+
+        elif (spinHypCode == 5 or spinHypCode == 10) : ### qq->0+ vs 2m+ with or without prodction
+            if( channel == self.ID_2e2mu ):
+                alpha=1.0
+                r=1.0
+            elif ( channel == self.ID_4mu ):
+                alpha=1.0
+                r=1.0
+            else :  #( channel == self.ID_4e )
+                alpha=1.0
+                r=1.0
+        elif (spinHypCode == 6) : ### qq->0+ vs 2h+
+            if( channel == self.ID_2e2mu ):
+                alpha=1.0
+                r=1.0
+            elif ( channel == self.ID_4mu ):
+                alpha=1.0
+                r=1.0
+            else :  #( channel == self.ID_4e )
+                alpha=1.0
+                r=1.0
+        elif (spinHypCode == 7) : ### qq->0+ vs 2h-
+            if( channel == self.ID_2e2mu ):
+                alpha=1.0
+                r=1.0
+            elif ( channel == self.ID_4mu ):
+                alpha=1.0
+                r=1.0
+            else :  #( channel == self.ID_4e )
+                alpha=1.0
+                r=1.0
+        elif (spinHypCode == 8) : ### qq->0+ vs 2b+
             if( channel == self.ID_2e2mu ):
                 alpha=1.0
                 r=1.0
@@ -1561,7 +1916,7 @@ class datacardClass:
                 r= 0.912885
             else :  #( channel == self.ID_4e )
                 r= 0.858691
-        elif (spinHypCode == 1) : ### gg->0+ vs 2m+
+        elif (spinHypCode == 1 or spinHypCode == 9) : ### gg->0+ vs 2m+ with or without prodction
             if( channel == self.ID_2e2mu ):
                 r= 1.12826
             elif ( channel == self.ID_4mu ):
@@ -1575,27 +1930,48 @@ class datacardClass:
                 r= 0.941477
             else :  #( channel == self.ID_4e )
                 r= 0.947087
-        elif (spinHypCode == 3) : ### 0+ vs 1+
+        elif (spinHypCode == 3 or spinHypCode == 12) : ### 0+ vs 1+ with or without production
             if( channel == self.ID_2e2mu ):
                 r= 1.07114
             elif ( channel == self.ID_4mu ):
                 r=0.968514
             else :  #( channel == self.ID_4e )
                 r= 0.882397
-        elif (spinHypCode == 4) : ### 0+ vs 1-
+        elif (spinHypCode == 4 or spinHypCode == 11) : ### 0+ vs 1- with or without production
             if( channel == self.ID_2e2mu ):
                 r=1.1036
             elif ( channel == self.ID_4mu ):
                 r=0.939779
             else :  #( channel == self.ID_4e )
                 r=0.854791
-        elif (spinHypCode == 5) : ### qq->0+ vs 2m+
+        elif (spinHypCode == 5 or spinHypCode == 10) : ### qq->0+ vs 2m+ with or without prodcution
             if( channel == self.ID_2e2mu ):
                 r=1.1417
             elif ( channel == self.ID_4mu ):
                 r= 0.884544
             else :  #( channel == self.ID_4e )
                 r= 0.861437
+        elif (spinHypCode == 6) : ### qq->0+ vs 2h+
+            if( channel == self.ID_2e2mu ):
+                r=1.08468
+            elif ( channel == self.ID_4mu ):
+                r=0.923807
+            else :  #( channel == self.ID_4e )
+                r=0.929498
+        elif (spinHypCode == 7) : ### qq->0+ vs 2h-
+            if( channel == self.ID_2e2mu ):
+                r=1.06728
+            elif ( channel == self.ID_4mu ):
+                r=0.948808
+            else :  #( channel == self.ID_4e )
+                r=0.927109
+        elif (spinHypCode == 8) : ### qq->0+ vs 2b+
+            if( channel == self.ID_2e2mu ):
+                r=1.13491
+            elif ( channel == self.ID_4mu ):
+                r=0.876802
+            else :  #( channel == self.ID_4e )
+                r=0.890959
         elif (spinHypCode < 0) : ### do nothing
             if( channel == self.ID_2e2mu ):
                 alpha=1.0
