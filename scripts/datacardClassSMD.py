@@ -1343,9 +1343,17 @@ class datacardClass:
         print signalCB_ggH.createIntegral(ROOT.RooArgSet(CMS_zz4l_mass)).getVal(),"   ",sig_ggH.createIntegral(ROOT.RooArgSet(CMS_zz4l_mass)).getVal()
         print signalCB_ggH.createIntegral(ROOT.RooArgSet(CMS_zz4l_mass),ROOT.RooFit.Range("shape")).getVal(),"   ",sig_ggH.createIntegral(ROOT.RooArgSet(CMS_zz4l_mass),ROOT.RooFit.Range("shape")).getVal()
 
-        rfvSigRate_ggH = ROOT.RooFormulaVar("ggH_norm","{0}+{1}+{2}+{3}+{4}*@0".format(rfvSigRate_ggH_temp.getVal(),rfvSigRate_VBF.getVal(),rfvSigRate_WH.getVal(),rfvSigRate_ZH.getVal(),rfvSigRate_ttH.getVal()),ROOT.RooArgList(one))
+        ##set ggH yield to output of jhuGen and correct for vbf+zh+wh+tth
+        rrvJHUgen_SMggH = ROOT.RooRealVar("jhuGen_SM","jhuGen_SM",float(theInputs['jhuGen_SM_yield']))
+        rrvXs_SMggH_ratio = ROOT.RooRealVar("ggH_Xs_ratio","ggH_Xs_ratio",one.getVal())
+        if(self.all_chan):
+            rrvXs_SMggH_ratio.setVal((rfvSigRate_ggH_temp.getVal()+rfvSigRate_VBF.getVal()+rfvSigRate_WH.getVal()+rfvSigRate_ZH.getVal()+rfvSigRate_ttH.getVal())/rfvSigRate_ggH_temp.getVal())
+            
+
+        rfvSigRate_ggH = ROOT.RooFormulaVar("ggH_norm","@0*@1",ROOT.RooArgList(rrvJHUgen_SMggH,rrvXs_SMggH_ratio))
         if (self.all_chan):
-            print "Requested to sum up over the 5 chans: the norm in rfvSigRate_ggH should be the sum of the values of sigRate_XYZ_Shape variables:"
+            print "Requested to sum up over the 5 chans and take rate from jhuGen"
+            print "the norm in rfvSigRate_ggH should be close to the sum of the values of sigRate_XYZ_Shape variables:"
         print " @@@@@@@ norm sig = ",rrvNormSig.getVal()
         print " @@@@@@@ rfvSigRate_ggH_temp = ",rfvSigRate_ggH_temp.getVal()
         print " sigRate_ggH_Shape=",sigRate_ggH_Shape
@@ -1527,8 +1535,33 @@ class datacardClass:
         getattr(w,'import')(rfvSigRate_ggH, ROOT.RooFit.RecycleConflictNodes())
         
         if(self.isAltSig):
+              ##set ggH_ALT yield to output of jhuGen and correct for vbf+zh+wh+tth
+            rrvJHUgen_ggH_ALT = ROOT.RooRealVar("jhuGen_ALT","jhuGen_ALT",float(theInputs['jhuGen_0minus_yield'])) 
+            if (self.all_chan):
+                if(self.spinHyp == 0): ### 0+ vs 0-
+                    rrvJHUgen_ggH_ALT.setVal(float(theInputs['jhuGen_0minus_yield']))   
+                elif(self.spinHyp == 1 or self.spinHyp == 9): ### 0+ vs gg2m+ with or without production
+                    rrvJHUgen_ggH_ALT.setVal(float(theInputs['jhuGen_gg2mplus_yield']))
+                elif(self.spinHyp == 2): ### 0+ vs 0h+
+                    rrvJHUgen_ggH_ALT.setVal(float(theInputs['jhuGen_0hplus_yield']))
+                elif(self.spinHyp == 3 or self.spinHyp == 12): ### 0+ vs 1+ with or without production
+                    rrvJHUgen_ggH_ALT.setVal(float(theInputs['jhuGen_1plus_yield']))
+                elif(self.spinHyp == 4 or self.spinHyp == 11): ### 0+ vs 1- with or without production
+                    rrvJHUgen_ggH_ALT.setVal(float(theInputs['jhuGen_1minus_yield']))
+                elif(self.spinHyp == 5 or self.spinHyp == 10): ### 0+ vs qq2m+ with or without production
+                    rrvJHUgen_ggH_ALT.setVal(float(theInputs['jhuGen_qq2mplus_yield']))
+                elif(self.spinHyp == 6): ### 0+ vs 2h+
+                    rrvJHUgen_ggH_ALT.setVal(float(theInputs['jhuGen_2hplus_yield']))
+                elif(self.spinHyp == 7): ### 0+ vs 2h-
+                    rrvJHUgen_ggH_ALT.setVal(float(theInputs['jhuGen_2hminus_yield']))
+                elif(self.spinHyp == 8): ### 0+ vs 2b+
+                    rrvJHUgen_ggH_ALT.setVal(float(theInputs['jhuGen_2bplus_yield']))
+                else:
+                    print "Spin Code Error..."
 
-            rfvSigRate_ggH_ALT=ROOT.RooFormulaVar(rfvSigRate_ggH,"ggH{0}_norm".format(self.appendHypType))
+            rfvSigRate_ggH_ALT = ROOT.RooFormulaVar("ggH{0}_norm".format(self.appendHypType),"@0*@1",ROOT.RooArgList(rrvJHUgen_ggH_ALT,rrvXs_SMggH_ratio))
+            
+            ##rfvSigRate_ggH_ALT=ROOT.RooFormulaVar(rfvSigRate_ggH,"ggH{0}_norm".format(self.appendHypType))
             print 'Compare signal rates: STD=',rfvSigRate_ggH.getVal(),"   ALT=",rfvSigRate_ggH_ALT.getVal()
             getattr(w,'import')(rfvSigRate_ggH_ALT, ROOT.RooFit.RecycleConflictNodes())
 
@@ -1700,7 +1733,7 @@ class datacardClass:
                 if ( channelName2D[ind]=="ggH_ALT") :
    ###                 print 'I will write in the card a factor ',theRates[chan]*corrForInterf
 ###                    file.write("{0:.4f} ".format(theRates[chan]*corrForInterf*corrForAccept))
-                    file.write("{0:.4f} ".format(theRates[chan]*corrForInterfAndAccept))
+                    file.write("{0:.4f} ".format(theRates[chan]))
                 else :
                     file.write("{0:.4f} ".format(theRates[chan]))
             ind += 1
@@ -1732,6 +1765,9 @@ class datacardClass:
         if inputs['zbb']:   counter+=1
         
         return counter
+
+    ### THESE ARE NOT OUTDATED RATIOS ARE NOT USED ANYMORE
+    ### YIELDS FOR SPIN COME DIRECTLY FROM FRAGMENTS
 
     def calcInterfYieldCorr(self, channel, spinHypCode):
 
@@ -1773,7 +1809,8 @@ class datacardClass:
         return corrFactor
 
 
-            
+
+
 
     def calcAcceptYieldCorr(self, channel, spinHypCode):
 
