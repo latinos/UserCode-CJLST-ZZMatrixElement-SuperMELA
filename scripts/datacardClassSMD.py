@@ -469,12 +469,13 @@ class datacardClass:
             discVarName = "CMS_zz4l_qqgravi_ProdIndepKD"
         elif(self.spinHyp == 11):
             discVarName = "CMS_zz4l_p1minus_ProdIndepKD"
-        elif(self.spinHyp == 9):
+        elif(self.spinHyp == 12):
             discVarName = "CMS_zz4l_p1plus_ProdIndepKD"
         else :
+            print "ERROR!!"
             discVarName = "CMS_zz4l_pseudoKD"
 
-        print '++++ SuperMELA 2D PDFS using discriminat named :',discVarName,'  +++++'
+        print '++++ SuperMELA 2D PDFS using discriminats named :',discVarName,' and: ',superDiscVarName,'  +++++'
         ##D = ROOT.RooRealVar(discVarName,discVarName,0.0,1.0)
         ##D.setBins(ufbins,"ufbins")
     
@@ -491,13 +492,27 @@ class datacardClass:
 	dLowY = sigTemplate.GetYaxis().GetXmin()
 	dHighY = sigTemplate.GetYaxis().GetXmax()        
     	D = ROOT.RooRealVar(discVarName,discVarName,dLowY,dHighY)
-	#D.setBins(dBinsY)
+	D.setBins(dBinsY)
+        Dbinning = ROOT.RooBinning(sigTemplate.GetYaxis().GetNbins(),sigTemplate.GetYaxis().GetXbins().GetArray())
+        D.setBinning(Dbinning)
+
+        print "Check bins of ",discVarName
+        print "N bins, [range] ",dBinsY, " [",dLowY,",",dHighY,"]"
+        print "Binning"
+        Dbinning.Print()
 	
 	dBinsX = sigTemplate.GetXaxis().GetNbins()
 	dLowX = sigTemplate.GetXaxis().GetXmin()
         dHighX = sigTemplate.GetXaxis().GetXmax()
 	SD = ROOT.RooRealVar(superDiscVarName,superDiscVarName,dLowX,dHighX)
-	#SD.setBins(dBinsX)
+	SD.setBins(dBinsX)
+        SDbinning = ROOT.RooBinning(sigTemplate.GetXaxis().GetNbins(),sigTemplate.GetXaxis().GetXbins().GetArray())
+        SD.setBinning(SDbinning)
+
+        print "Check bins of ",superDiscVarName
+        print "N bins, [range] ",dBinsX, " [",dLowX,",",dHighX,"]"
+        print "Binning"
+        SDbinning.Print()
 
 	TemplateName = "sigTempDataHist_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         sigTempDataHist = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(SD,D),sigTemplate)
@@ -534,8 +549,8 @@ class datacardClass:
             sigTemplate_syst2Up = sigTempFile.Get("h_superDpsD_LeptSmearUp")
             sigTemplate_syst2Down = sigTempFile.Get("h_superDpsD_LeptSmearDown")
 
-            #D.setBins(dBinsY)
-            #SD.setBins(dBinsX)
+            SD.setBinning(SDbinning)
+            D.setBinning(Dbinning)
             
             TemplateName = "sigTempDataHist_{0:.0f}_{1:.0f}{2}".format(self.channel,self.sqrts, self.appendHypType)
             sigTempDataHist_ALT = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(SD,D),sigTemplate)
@@ -629,8 +644,9 @@ class datacardClass:
 ###        sigTemplateSD = sigTempSDFile.Get("h_superDfromProjX") 
         print 'SuperMELA 1D template has mean = ',sigTemplateSD.GetMean()
 
-        #D.setBins(dBinsY)
-        #SD.setBins(dBinsX)
+        
+        SD.setBinning(SDbinning)
+        D.setBinning(Dbinning)
         
         TemplateSDName = "sigTempSDDataHist_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         sigTempSDDataHist = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(SD),sigTemplateSD)
@@ -896,6 +912,8 @@ class datacardClass:
 
         #D.setBins(dBinsY)
         #SD.setBins(dBinsX)
+        SD.setBinning(SDbinning)
+        D.setBinning(Dbinning)
         
         TemplateName = "bkgTempDataHist_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         bkgTempDataHist = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(SD,D),bkgTemplate)
@@ -908,6 +926,8 @@ class datacardClass:
 
         #D.setBins(dBinsY)
         #SD.setBins(dBinsX)
+        SD.setBinning(SDbinning)
+        D.setBinning(Dbinning)
             
         TemplateName = "ggbkgTempDataHist_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         ggbkgTempDataHist = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(SD,D),ggbkgTemplate)
@@ -924,6 +944,8 @@ class datacardClass:
 
         #D.setBins(dBinsY)
         #SD.setBins(dBinsX)
+        SD.setBinning(SDbinning)
+        D.setBinning(Dbinning)
         
         TemplateName = "bkgTemplatePdf_zjets_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         bkgTemplatePdf_zjets = ROOT.RooHistPdf(TemplateName,TemplateName,ROOT.RooArgSet(SD,D),bkgTempDataHist)
@@ -980,6 +1002,8 @@ class datacardClass:
 
         #D.setBins(dBinsY)
         #SD.setBins(dBinsX)
+        SD.setBinning(SDbinning)
+        D.setBinning(Dbinning)
             
         TemplateSDName = "bkgTempSDDataHist_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)    
         bkgTempSDDataHist = ROOT.RooDataHist(TemplateSDName,TemplateSDName,ROOT.RooArgList(SD),bkgTemplateSD)
@@ -1345,12 +1369,9 @@ class datacardClass:
 
         ##set ggH yield to output of jhuGen and correct for vbf+zh+wh+tth
         rrvJHUgen_SMggH = ROOT.RooRealVar("jhuGen_SM","jhuGen_SM",float(theInputs['jhuGen_SM_yield']))
-        rrvXs_SMggH_ratio = ROOT.RooRealVar("ggH_Xs_ratio","ggH_Xs_ratio",one.getVal())
-        if(self.all_chan):
-            rrvXs_SMggH_ratio.setVal((rfvSigRate_ggH_temp.getVal()+rfvSigRate_VBF.getVal()+rfvSigRate_WH.getVal()+rfvSigRate_ZH.getVal()+rfvSigRate_ttH.getVal())/rfvSigRate_ggH_temp.getVal())
-            
-
-        rfvSigRate_ggH = ROOT.RooFormulaVar("ggH_norm","@0*@1",ROOT.RooArgList(rrvJHUgen_SMggH,rrvXs_SMggH_ratio))
+        rrv_SMggH_ratio = ROOT.RooRealVar("ggH_ratio","ggH_ratio",(rfvSigRate_ggH_temp.getVal()+rfvSigRate_VBF.getVal()+rfvSigRate_WH.getVal()+rfvSigRate_ZH.getVal()+rfvSigRate_ttH.getVal())/rfvSigRate_ggH_temp.getVal())
+        #rfvSigRate_ggH = ROOT.RooFormulaVar("ggH_norm","@0*{0}".format(rrvJHUgen_SMggH.getVal()),ROOT.RooArgList(rfv_SMggH_ratio))
+        rfvSigRate_ggH = ROOT.RooFormulaVar("ggH_norm","@0",ROOT.RooArgList(one))
         if (self.all_chan):
             print "Requested to sum up over the 5 chans and take rate from jhuGen"
             print "the norm in rfvSigRate_ggH should be close to the sum of the values of sigRate_XYZ_Shape variables:"
@@ -1372,7 +1393,7 @@ class datacardClass:
         ## SET RATES TO 1 
         ## DC RATES WILL BE MULTIPLIED
         ## BY RATES IMPORTED TO WS
-        sigRate_ggH_Shape = 1
+        sigRate_ggH_Shape = rrvJHUgen_SMggH.getVal()*rrv_SMggH_ratio.getVal()
         sigRate_VBF_Shape = 1
         sigRate_WH_Shape = 1
         sigRate_ZH_Shape = 1
@@ -1429,6 +1450,8 @@ class datacardClass:
         datasetName = "data_obs_{0}".format(self.appendName)
         
 ###            data_obs = ROOT.RooDataSet(datasetName,datasetName,data_obs_tree,ROOT.RooArgSet(SD,D))
+        SD.setBinning(SDbinning)
+        D.setBinning(Dbinning)
         data_obs = ROOT.RooDataSet(datasetName,datasetName,data_obs_tree,ROOT.RooArgSet(CMS_zz4l_mass,SD,D),'CMS_zz4l_mass>106.0&&CMS_zz4l_mass<141.0').reduce(ROOT.RooArgSet(SD,D))
 
 
@@ -1480,7 +1503,9 @@ class datacardClass:
             
                 
         #D.setBins(dBinsY)
-        #SD.setBins(dBinsX)  
+        #SD.setBins(dBinsX)
+        SD.setBinning(SDbinning)
+        D.setBinning(Dbinning)
         getattr(w,'import')(data_obs,ROOT.RooFit.Rename("data_obs")) ### Should this be renamed?
     
         if(self.bUseCBnoConvolution) :
@@ -1533,7 +1558,7 @@ class datacardClass:
 
 ### save signal rates        
         getattr(w,'import')(rfvSigRate_ggH, ROOT.RooFit.RecycleConflictNodes())
-        
+        rrvJHUgen_ggH_ALT = ROOT.RooRealVar("jhuGen_ALT","jhuGen_ALT",float(theInputs['jhuGen_0minus_yield'])) 
         if(self.isAltSig):
               ##set ggH_ALT yield to output of jhuGen and correct for vbf+zh+wh+tth
             rrvJHUgen_ggH_ALT = ROOT.RooRealVar("jhuGen_ALT","jhuGen_ALT",float(theInputs['jhuGen_0minus_yield'])) 
@@ -1559,7 +1584,10 @@ class datacardClass:
                 else:
                     print "Spin Code Error..."
 
-            rfvSigRate_ggH_ALT = ROOT.RooFormulaVar("ggH{0}_norm".format(self.appendHypType),"@0*@1",ROOT.RooArgList(rrvJHUgen_ggH_ALT,rrvXs_SMggH_ratio))
+            #rfvSigRate_ggH_ALT = ROOT.RooFormulaVar("ggH{0}_norm".format(self.appendHypType),"@0*{0}".format(rrvJHUgen_ggH_ALT.getVal()),ROOT.RooArgList(rfv_SMggH_ratio))
+            rfvSigRate_ggH_ALT = ROOT.RooFormulaVar("ggH{0}_norm".format(self.appendHypType),"@0",ROOT.RooArgList(one))
+            
+            sigRate_ggH_ALT_Shape = rrvJHUgen_ggH_ALT.getVal()*rrv_SMggH_ratio.getVal()
             
             ##rfvSigRate_ggH_ALT=ROOT.RooFormulaVar(rfvSigRate_ggH,"ggH{0}_norm".format(self.appendHypType))
             print 'Compare signal rates: STD=',rfvSigRate_ggH.getVal(),"   ALT=",rfvSigRate_ggH_ALT.getVal()
@@ -1567,6 +1595,8 @@ class datacardClass:
 
         #D.setBins(dBinsY)
         #SD.setBins(dBinsX)
+        SD.setBinning(SDbinning)
+        D.setBinning(Dbinning)
         
         w.writeToFile(name_ShapeWS)
         w.writeToFile(name_ShapeWSXSBR)
@@ -1593,6 +1623,8 @@ class datacardClass:
         rates['WH']  = sigRate_WH_Shape
         rates['ZH']  = sigRate_ZH_Shape
         rates['ttH'] = sigRate_ttH_Shape
+        if(self.isAltSig):
+            rates['ggH_ALT'] = sigRate_ggH_ALT_Shape
 
         rates['qqZZ']  = bkgRate_qqzz_Shape
         rates['ggZZ']  = bkgRate_ggzz_Shape
@@ -1724,7 +1756,7 @@ class datacardClass:
         ### (depends on spin hypothesis, only for 4e and 4mu)
    ##     corrForInterf = self.calcInterfYieldCorr(self.channel,self.spinHyp)
    ##     corrForAccept = self.calcAcceptYieldCorr(self.channel,self.spinHyp)
-        corrForInterfAndAccept = self.calcTotalYieldCorr(self.channel,self.spinHyp)
+   #     corrForInterfAndAccept = self.calcTotalYieldCorr(self.channel,self.spinHyp)
    ###     print 'Corr for interference is ',corrForInterf
         ind=0
         for chan in channelList:
@@ -1733,7 +1765,7 @@ class datacardClass:
                 if ( channelName2D[ind]=="ggH_ALT") :
    ###                 print 'I will write in the card a factor ',theRates[chan]*corrForInterf
 ###                    file.write("{0:.4f} ".format(theRates[chan]*corrForInterf*corrForAccept))
-                    file.write("{0:.4f} ".format(theRates[chan]))
+                    file.write("{0:.4f} ".format(theRates['ggH_ALT']))
                 else :
                     file.write("{0:.4f} ".format(theRates[chan]))
             ind += 1

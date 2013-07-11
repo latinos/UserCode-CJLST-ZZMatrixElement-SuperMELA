@@ -23,5 +23,5 @@ cp ../../SignalSeparation/ex* .
 
 combineCards.py hzz4l_2e2muS_7TeV_ALT.txt hzz4l_2e2muS_8TeV_ALT.txt hzz4l_4eS_7TeV_ALT.txt hzz4l_4eS_8TeV_ALT.txt hzz4l_4muS_7TeV_ALT.txt hzz4l_4muS_8TeV_ALT.txt > hzz4l_ALT.txt
 
-#./execute_SignalSeparationCombine.sh ./ hzz4l_ALT.txt 2 $3
-#root -l -n -b -q "extractSignificanceStats.C+ (true,\"$1\",\"$1\")"
+./execute_SignalSeparationCombine.sh ./ hzz4l_ALT.txt 2 $3
+root -l -n -b -q "extractSignificanceStats.C+ (true,\"$1\",\"$1\")"

@@ -57,6 +57,12 @@ def make1Dtemplates():
         sigTemplate_syst2Up = sigTempFile.Get("h_superDpsD_LeptSmearUp")
         sigTemplate_syst2Down = sigTempFile.Get("h_superDpsD_LeptSmearDown")
 
+        #print "pre-ggH norm: ", sigTemplate.Integral();
+        #print "pre-ggH syst1up norm: ", sigTemplate_syst1Up.Integral();
+        #print "pre-ggH syst1down norm: ", sigTemplate_syst1Down.Integral();
+        #print "pre-ggH syst2up norm: ", sigTemplate_syst2Up.Integral();
+        #print "pre-ggH syst2Down norm: ", sigTemplate_syst2Down.Integral();
+
         outTemplate = ROOT.TH1F("h_superDpsD","h_superDpsD",(sigTemplate.GetNbinsX())*(sigTemplate.GetNbinsY()),0,(sigTemplate.GetNbinsX())*(sigTemplate.GetNbinsY()))
         outTemplate_syst1Up = ROOT.TH1F("h_superDpsD_LeptScaleUp","h_superDpsD_LeptScaleUp",(sigTemplate_syst1Up.GetNbinsX())*(sigTemplate_syst1Up.GetNbinsY()),0,(sigTemplate_syst1Up.GetNbinsX())*(sigTemplate_syst1Up.GetNbinsY()))
         outTemplate_syst1Down = ROOT.TH1F("h_superDpsD_LeptScaleDown","h_superDpsD_LeptScaleDown",(sigTemplate_syst1Down.GetNbinsX())*(sigTemplate_syst1Down.GetNbinsY()),0,(sigTemplate_syst1Down.GetNbinsX())*(sigTemplate_syst1Down.GetNbinsY()))
@@ -73,6 +79,11 @@ def make1Dtemplates():
                 outTemplate_syst2Down.SetBinContent(bin_tot+1,sigTemplate_syst2Down.GetBinContent(xbin+1,ybin+1))
                 bin_tot+=1
 
+        #print "ggH norm: ", outTemplate.Integral();
+        #print "ggH syst1up norm: ", outTemplate_syst1Up.Integral();
+        #print "ggH syst1down norm: ", outTemplate_syst1Down.Integral();
+        #print "ggH syst2up norm: ", outTemplate_syst2Up.Integral();
+        #print "ggH syst2Down norm: ", outTemplate_syst2Down.Integral();
         OutTempSigName = "{0}/Dsignal_{1}.root".format(opt.OutDir,appendName)
         OutTempFile = ROOT.TFile(OutTempSigName,"RECREATE")
         outTemplate.Write()
@@ -109,6 +120,11 @@ def make1Dtemplates():
                 outTemplate_ALT_syst2Down.SetBinContent(bin_ALT_tot+1,sigTemplate_ALT_syst2Down.GetBinContent(xbin+1,ybin+1))
                 bin_ALT_tot+=1
 
+        #print "ggH ALT norm: ", outTemplate_ALT.Integral();
+        #print "ggH ALT syst1up norm: ", outTemplate_ALT_syst1Up.Integral();
+        #print "ggH ALT syst1down norm: ", outTemplate_ALT_syst1Down.Integral();
+        #print "ggH ALT syst2up norm: ", outTemplate_ALT_syst2Up.Integral();
+        #print "ggH ALT syst2Down norm: ", outTemplate_ALT_syst2Down.Integral();
         OutTempSigName_ALT = "{0}/Dsignal_ALT_{1}.root".format(opt.OutDir,appendName)
         OutTempFile_ALT = ROOT.TFile(OutTempSigName_ALT,"RECREATE")
         outTemplate_ALT.Write()
@@ -133,7 +149,7 @@ def make1Dtemplates():
                 outTemplate_qqZZ.SetBinContent(bin_qqZZ_tot+1,bkgTemplate_qqZZ.GetBinContent(xbin+1,ybin+1))
                 bin_qqZZ_tot+=1
              
-
+        #print "qqZZ norm: ", outTemplate_qqZZ.Integral();
         OutTempBkgName_qqZZ = "{0}/Dbackground_qqZZ_{1}.root".format(opt.OutDir,appendName)
         OutTempFile_qqZZ = ROOT.TFile(OutTempBkgName_qqZZ,"RECREATE")
         outTemplate_qqZZ.Write()
@@ -155,6 +171,7 @@ def make1Dtemplates():
                 outTemplate_ggZZ.SetBinContent(bin_ggZZ_tot+1,bkgTemplate_ggZZ.GetBinContent(xbin+1,ybin+1))
                 bin_ggZZ_tot+=1
 
+        #print "ggZZ norm: ", outTemplate_ggZZ.Integral();
         OutTempBkgName_ggZZ = "{0}/Dbackground_ggZZ_{1}.root".format(opt.OutDir,appendName)
         OutTempFile_ggZZ = ROOT.TFile(OutTempBkgName_ggZZ,"RECREATE")
         outTemplate_ggZZ.Write()
@@ -176,6 +193,7 @@ def make1Dtemplates():
                 outTemplate_ZJetsCR_AllChans.SetBinContent(bin_ZJetsCR_AllChans_tot+1,bkgTemplate_ZJetsCR_AllChans.GetBinContent(xbin+1,ybin+1))
                 bin_ZJetsCR_AllChans_tot+=1
 
+        #print "ZJetsCR norm: ", outTemplate_ZJetsCR_AllChans.Integral();
         OutTempBkgName_ZJetsCR_AllChans = "{0}/Dbackground_ZJetsCR_AllChans.root".format(opt.OutDir)
         OutTempFile_ZJetsCR_AllChans = ROOT.TFile(OutTempBkgName_ZJetsCR_AllChans,"RECREATE")
         outTemplate_ZJetsCR_AllChans.Write()
