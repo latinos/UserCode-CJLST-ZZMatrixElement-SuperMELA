@@ -487,6 +487,10 @@ class datacardClass:
         sigTemplate_syst1Down = sigTempFile.Get("h_superDpsD_LeptScaleDown")
         sigTemplate_syst2Up = sigTempFile.Get("h_superDpsD_LeptSmearUp")
         sigTemplate_syst2Down = sigTempFile.Get("h_superDpsD_LeptSmearDown")
+        if(self.spinHyp == 12):
+            sigTemplate_syst3Up = sigTempFile.Get("h_superDpsD_AltProdUp")
+            sigTemplate_syst3Down = sigTempFile.Get("h_superDpsD_AltProdDown")
+        
 
 	dBinsY = sigTemplate.GetYaxis().GetNbins()
 	dLowY = sigTemplate.GetYaxis().GetXmin()
@@ -521,9 +525,14 @@ class datacardClass:
         TemplateName = "sigTempDataHist_syst1Down_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         sigTempDataHist_syst1Down =ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(SD,D),sigTemplate_syst1Down)
         TemplateName = "sigTempDataHist_syst2Up_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        sigTempDataHist_syst2Up = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(SD,D),sigTemplate_syst1Up)
+        sigTempDataHist_syst2Up = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(SD,D),sigTemplate_syst2Up)
         TemplateName = "sigTempDataHist_syst2Down_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
-        sigTempDataHist_syst2Down =ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(SD,D),sigTemplate_syst1Down)
+        sigTempDataHist_syst2Down =ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(SD,D),sigTemplate_syst2Down)
+        if(self.spinHyp == 12):
+            TemplateName = "sigTempDataHist_syst3Up_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+            sigTempDataHist_syst3Up = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(SD,D),sigTemplate_syst3Up)
+            TemplateName = "sigTempDataHist_syst3Down_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+            sigTempDataHist_syst3Down = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(SD,D),sigTemplate_syst3Down)
 
         TemplateName = "sigTemplatePdf_ggH_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         sigTemplatePdf_ggH = ROOT.RooHistPdf(TemplateName,TemplateName,ROOT.RooArgSet(SD,D),sigTempDataHist)
@@ -535,7 +544,11 @@ class datacardClass:
         sigTemplatePdf_ggH_syst2Up = ROOT.RooHistPdf(TemplateName,TemplateName,ROOT.RooArgSet(SD,D),sigTempDataHist_syst2Up)
         TemplateName = "sigTemplatePdf_ggH_syst2Down_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         sigTemplatePdf_ggH_syst2Down = ROOT.RooHistPdf(TemplateName,TemplateName,ROOT.RooArgSet(SD,D),sigTempDataHist_syst2Down)
-           
+        if(self.spinHyp == 12):
+            TemplateName = "sigTemplatePdf_ggH_syst3Up_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+            sigTemplatePdf_ggH_syst3Up = ROOT.RooHistPdf(TemplateName,TemplateName,ROOT.RooArgSet(SD,D),sigTempDataHist_syst3Up)
+            TemplateName = "sigTemplatePdf_ggH_syst3Down_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
+            sigTemplatePdf_ggH_syst3Down = ROOT.RooHistPdf(TemplateName,TemplateName,ROOT.RooArgSet(SD,D),sigTempDataHist_syst3Down)
 
         if(self.isAltSig):
             #only ggH because if we do hypothesis testing we sum up over the channels in any case                                           
@@ -548,6 +561,9 @@ class datacardClass:
             sigTemplate_syst1Down = sigTempFile.Get("h_superDpsD_LeptScaleDown")
             sigTemplate_syst2Up = sigTempFile.Get("h_superDpsD_LeptSmearUp")
             sigTemplate_syst2Down = sigTempFile.Get("h_superDpsD_LeptSmearDown")
+            if(self.spinHyp == 12):
+                sigTemplate_syst3Up = sigTempFile.Get("h_superDpsD_AltProdUp")
+                sigTemplate_syst3Down = sigTempFile.Get("h_superDpsD_AltProdDown")
 
             SD.setBinning(SDbinning)
             D.setBinning(Dbinning)
@@ -562,6 +578,11 @@ class datacardClass:
             sigTempDataHist_ALT_syst2Up = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(SD,D),sigTemplate_syst2Up)
             TemplateName = "sigTempDataHist_syst2Down_{0:.0f}_{1:.0f}{2}".format(self.channel,self.sqrts, self.appendHypType)
             sigTempDataHist_ALT_syst2Down = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(SD,D),sigTemplate_syst2Down)
+            if(self.spinHyp == 12):
+                TemplateName = "sigTempDataHist_syst3Up_{0:.0f}_{1:.0f}{2}".format(self.channel,self.sqrts, self.appendHypType)
+                sigTempDataHist_ALT_syst3Up = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(SD,D),sigTemplate_syst3Up)
+                TemplateName = "sigTempDataHist_syst3Down_{0:.0f}_{1:.0f}{2}".format(self.channel,self.sqrts, self.appendHypType)
+                sigTempDataHist_ALT_syst3Down = ROOT.RooDataHist(TemplateName,TemplateName,ROOT.RooArgList(SD,D),sigTemplate_syst3Down)
             
             
             TemplateName = "sigTemplatePdf_ggH{2}_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts, self.appendHypType)
@@ -574,6 +595,11 @@ class datacardClass:
             sigTemplatePdf_ggH_ALT_syst2Up = ROOT.RooHistPdf(TemplateName,TemplateName,ROOT.RooArgSet(SD,D),sigTempDataHist_ALT_syst2Up)
             TemplateName = "sigTemplatePdf_ggH{2}_syst2Down_{0:.0f}_{1:.0f}{2}".format(self.channel,self.sqrts, self.appendHypType)
             sigTemplatePdf_ggH_ALT_syst2Down = ROOT.RooHistPdf(TemplateName,TemplateName,ROOT.RooArgSet(SD,D),sigTempDataHist_ALT_syst2Down)
+            if(self.spinHyp == 12):
+                TemplateName = "sigTemplatePdf_ggH{2}_syst3Up_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts, self.appendHypType)
+                sigTemplatePdf_ggH_ALT_syst3Up = ROOT.RooHistPdf(TemplateName,TemplateName,ROOT.RooArgSet(SD,D),sigTempDataHist_ALT_syst3Up)
+                TemplateName = "sigTemplatePdf_ggH{2}_syst3Down_{0:.0f}_{1:.0f}{2}".format(self.channel,self.sqrts, self.appendHypType)
+                sigTemplatePdf_ggH_ALT_syst3Down = ROOT.RooHistPdf(TemplateName,TemplateName,ROOT.RooArgSet(SD,D),sigTempDataHist_ALT_syst3Down)
 
              
             ###Shape systematics for signal
@@ -587,7 +613,10 @@ class datacardClass:
             funcList1_ggH.add(sigTemplatePdf_ggH_syst1Down)  
 
             funcList1_ggH.add(sigTemplatePdf_ggH_syst2Up)
-            funcList1_ggH.add(sigTemplatePdf_ggH_syst2Down)  
+            funcList1_ggH.add(sigTemplatePdf_ggH_syst2Down)
+            if(self.spinHyp == 12):
+                funcList1_ggH.add(sigTemplatePdf_ggH_syst3Up)
+                funcList1_ggH.add(sigTemplatePdf_ggH_syst3Down)
 
             if(self.isAltSig):
                 funcList1_ggH_ALT.add(sigTemplatePdf_ggH_ALT)
@@ -595,6 +624,9 @@ class datacardClass:
                 funcList1_ggH_ALT.add(sigTemplatePdf_ggH_ALT_syst1Down)
                 funcList1_ggH_ALT.add(sigTemplatePdf_ggH_ALT_syst2Up)
                 funcList1_ggH_ALT.add(sigTemplatePdf_ggH_ALT_syst2Down)
+                if(self.spinHyp == 12):
+                    funcList1_ggH_ALT.add(sigTemplatePdf_ggH_ALT_syst3Up)
+                    funcList1_ggH_ALT.add(sigTemplatePdf_ggH_ALT_syst3Down)
         else:
             
             funcList1_ggH.add(sigTemplatePdf_ggH)
@@ -605,12 +637,19 @@ class datacardClass:
         syst1MorphSig = ROOT.RooRealVar(morphSigVarName,morphSigVarName,0,-20,20)
         morphSigVarName = "CMS_zz4l_smd_leptResol_sig_{0:.0f}".format(self.channel)
         syst2MorphSig = ROOT.RooRealVar(morphSigVarName,morphSigVarName,0,-20,20)
+        if(self.spinHyp == 12):
+            morphSigVarName = "CMS_zz4l_AltProd_AltSig_{0:.0f}".format(self.channel)
+            syst3MorphSig = ROOT.RooRealVar(morphSigVarName,morphSigVarName,0,-20,20)
         if(self.sigMorph):
             syst1MorphSig.setConstant(False)
             syst2MorphSig.setConstant(False)
+            if(self.spinHyp == 12):
+                syst3MorphSig.setConstant(False)
         else:
             syst1MorphSig.setConstant(True)
             syst2MorphSig.setConstant(True)
+            if(self.spinHyp == 12):
+                syst3MorphSig.setConstant(True)
         
         morphVarListSig1 = ROOT.RooArgList()
 ###        morphVarListSig2 = ROOT.RooArgList() ## just one morphing for all signal processes (fully correlated systs) 
@@ -619,6 +658,8 @@ class datacardClass:
             morphVarListSig1.add(syst1MorphSig)  ## just one morphing for all signal processes (fully correlated systs)
 ###            morphVarListSig2.add(syst2MorphSig)
             morphVarListSig1.add(syst2MorphSig)
+            if(self.spinHyp == 12):
+                morphVarListSig1.add(syst3MorphSig)
             
         TemplateName = "sigTemplateMorphPdf_ggH_{0:.0f}_{1:.0f}".format(self.channel,self.sqrts)
         sigTemplateMorphPdf_ggH = ROOT.FastVerticalInterpHistPdf2D(TemplateName,TemplateName,SD,D,False,funcList1_ggH,morphVarListSig1,1.0,1)

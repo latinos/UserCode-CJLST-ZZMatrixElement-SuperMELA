@@ -9,7 +9,9 @@ if [ $# -lt 3 ]
                          2=0+/0h+, 3=0+/1+, 
                          4=0+/1-,  5=0+/qq2m+
 			 6=0+/2h+, 7=0+/2h-
-			 8=0+/2b+
+			 8=0+/2b+  9=0+/pi2m+
+			 10=0+/piqq2m+, 11=0+/pi1-
+			 12=0+/pi1+
                         (default=-1, dummy, no effect)
             mu option: 0--> mu = 1 (default)
                        1--> prefitmu
@@ -24,4 +26,4 @@ cp ../../SignalSeparation/ex* .
 combineCards.py hzz4l_2e2muS_7TeV_ALT.txt hzz4l_2e2muS_8TeV_ALT.txt hzz4l_4eS_7TeV_ALT.txt hzz4l_4eS_8TeV_ALT.txt hzz4l_4muS_7TeV_ALT.txt hzz4l_4muS_8TeV_ALT.txt > hzz4l_ALT.txt
 
 ./execute_SignalSeparationCombine.sh ./ hzz4l_ALT.txt 2 $3
-root -l -n -b -q "extractSignificanceStats.C+ (true,\"$1\",\"$1\")"
+root -l -n -b -q "extractSignificanceStats.C+ (false,\"$1\",\"$1\")"
